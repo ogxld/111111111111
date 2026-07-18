@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapApp - Ghost Edition v2.2 (Admin Fixed)</title>
+    <title>SnapApp - Ghost Edition v2.3 (ogxldtg Root)</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -191,14 +191,14 @@
             <div id="map"></div>
         </div>
 
-        <!-- NOWY: DECYDOWANY PANEL ADMINISTRATORA -->
+        <!-- PANEL ADMINISTRATORA (DLA ogxldtg) -->
         <div id="panel-admin" class="panel">
             <div class="header">
-                <div class="profile-badge" style="padding: 10px 0;">👑 GŁÓWNY PANEL ADMINA</div>
+                <div class="profile-badge" style="padding: 10px 0;">👑 PANEL ADMINA SYSTEMU</div>
             </div>
             <div class="admin-card">
-                <h3>Status Systemu</h3>
-                <p style="color: var(--snap-blue); margin-top: 5px; font-size: 14px;">Zalogowano pomyślnie jako Root Administrator.</p>
+                <h3>Status Root</h3>
+                <p style="color: var(--snap-blue); margin-top: 5px; font-size: 14px;">Zalogowano jako Główny Administrator: <b>ogxldtg</b>.</p>
                 <button class="admin-btn" onclick="alert('Baza danych została zoptymalizowana!')">Wyczyść Logi Systemowe</button>
                 <button class="admin-btn" style="background: var(--bg-field); color: white;" onclick="window.switchTab('chat')">Powrót do Czatu</button>
             </div>
@@ -311,8 +311,8 @@
                 document.getElementById('appContainer').style.display = 'flex';
                 document.getElementById('displayMyName').innerText = currentUser.username;
 
-                // Aktywacja ukrytego przycisku panelu admina
-                if(currentUser.username === 'admin') {
+                // POPRAWKA LOGOWANIA ADMINA: Aktywacja panelu dla nicku ogxldtg
+                if(currentUser.username === 'ogxldtg') {
                     document.getElementById('btn-tab-admin').style.display = 'flex';
                 }
 
@@ -497,7 +497,8 @@
             badgeZone.innerText = `Limit: ${story.maxViews}x`;
             contentZone.innerHTML = `<div class="story-text-content">${story.content}</div>`;
 
-            if(story.author === currentUser.username || currentUser.username === 'admin') {
+            // POPRAWKA UPRAWNIEŃ: ogxldtg może usuwać każdą relację
+            if(story.author === currentUser.username || currentUser.username === 'ogxldtg') {
                 deleteContainer.innerHTML = `<button class="delete-story-btn">Usuń</button>`;
                 deleteContainer.querySelector('button').addEventListener('click', () => window.deleteStory(storyId));
             } else {
