@@ -3,106 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SnapApp - Ghost Mobile v3.0</title>
+    <title>SnapApp - Ghost Premium v4.0</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --bg-main: #050508;
-            --bg-surface: #0f0f15;
-            --bg-field: #161622;
+            --bg-main: #030305;
+            --bg-surface: #0a0a10;
+            --bg-field: #12121c;
             --snap-yellow: #FFFC00;
             --snap-blue: #00f0ff;
             --snap-purple: #bf55ec;
             --snap-red: #ff453a;
             --text-main: #f5f5f7;
             --text-muted: #86868b;
-            --border: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.05);
             --gradient-accent: linear-gradient(135deg, #FFFC00 0%, #ff007f 100%);
         }
 
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: var(--text-main); height: 100vh; display: flex; justify-content: center; overflow: hidden; }
         
-        /* Ekran logowania/rejestracji - Mobile Optimized */
-        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 24px; background: radial-gradient(circle at 50% 30%, #170b2e 0%, var(--bg-main) 100%); position: fixed; z-index: 10000; }
-        .auth-box { background: rgba(15, 15, 21, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border); padding: 35px 24px; border-radius: 32px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        /* Ekran Autoryzacji */
+        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 24px; background: radial-gradient(circle at 50% 30%, #130826 0%, var(--bg-main) 100%); position: fixed; z-index: 10000; }
+        .auth-box { background: rgba(10, 10, 16, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border); padding: 35px 24px; border-radius: 32px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         .auth-box h2 { font-size: 38px; font-weight: 900; margin-bottom: 30px; background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
         .auth-links { margin-top: 24px; font-size: 14px; color: var(--text-muted); cursor: pointer; font-weight: 600; }
         
-        /* Kontener Główny - Idealny pod Telefon */
+        /* Główny Kontener Aplikacji - Premium Mobile Grid */
         .app-container { display: none; flex-direction: column; height: 100vh; width: 100vw; max-width: 480px; background: var(--bg-main); position: relative; }
         @media (min-width: 481px) {
             .app-container { border-left: 1px solid var(--border); border-right: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.8); }
         }
         
-        /* Nowoczesny Nagłówek */
-        .header { background: rgba(15, 15, 21, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 10; }
+        /* Elitarny Nagłówek ze zdjęciem profilowym */
+        .header { background: rgba(10, 10, 16, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 110; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .profile-badge { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.4px; }
-        .profile-badge b { color: var(--snap-yellow); background: rgba(255, 252, 0, 0.12); padding: 3px 10px; border-radius: 10px; font-size: 14px; }
         
-        /* Komfortowa wyszukiwarka */
+        .profile-section { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar-container { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--snap-yellow); background: var(--bg-field); overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        .user-avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+        .user-avatar-placeholder { font-weight: 800; font-size: 14px; color: white; text-transform: uppercase; }
+        
+        .profile-badge { font-weight: 700; font-size: 17px; letter-spacing: -0.4px; }
+        .profile-badge b { color: var(--snap-yellow); background: rgba(255, 252, 0, 0.1); padding: 2px 8px; border-radius: 8px; font-size: 13px; margin-left: 4px; }
+        
+        /* Wyszukiwarka z systemem Live Dropdown */
+        .search-container { position: relative; width: 100%; }
         .search-box { display: flex; gap: 8px; background: var(--bg-field); padding: 4px; border-radius: 16px; border: 1px solid var(--border); }
-        .search-box input { background: transparent; border: none; padding: 12px 14px; color: white; flex: 1; outline: none; font-size: 15px; }
-        .search-box button { background: var(--text-main); color: black; font-weight: 700; border-radius: 12px; padding: 0 20px; border: none; cursor: pointer; font-size: 14px; }
-
-        .section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.2px; padding: 16px 20px 8px 20px; }
+        .search-box input { background: transparent; border: none; padding: 10px 14px; color: white; flex: 1; outline: none; font-size: 15px; }
         
-        /* Slider Relacji */
+        .search-live-results { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: rgba(18, 18, 28, 0.95); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 18px; max-height: 240px; overflow-y: auto; z-index: 500; display: none; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
+        .search-result-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02); transition: background 0.2s; }
+        .search-result-item:hover { background: rgba(255,255,255,0.05); }
+        .search-result-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: var(--snap-purple); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+        .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.5px; padding: 16px 20px 8px 20px; }
+        
+        /* Stories */
         .stories-container { display: flex; gap: 16px; padding: 4px 20px 16px 20px; overflow-x: auto; align-items: center; }
         .stories-container::-webkit-scrollbar { display: none; }
         .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #fff; width: 66px; shrink: 0; }
         .story-circle { width: 64px; height: 64px; border-radius: 50%; border: 2.5px solid var(--snap-yellow); padding: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-main); }
         .story-circle.add-story { border: 2px dashed #44445c; color: var(--snap-yellow); font-size: 24px; background: var(--bg-surface); }
         .story-circle.add-shortcut { border: 2px dashed #44445c; color: var(--snap-purple); font-size: 20px; background: var(--bg-surface); }
-        .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #361766 0%, #005687 100%); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); }
-
-        /* Komfortowe dymki czatów */
+        
+        /* Listy rozmów */
         .recent-chats { padding: 4px 20px 14px 20px; display: flex; gap: 10px; overflow-x: auto; min-height: 54px; }
         .recent-chats::-webkit-scrollbar { display: none; }
         .chat-chip { background: var(--bg-surface); border: 1px solid var(--border); padding: 12px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #e5e5ea; display: flex; align-items: center; gap: 8px; }
         .chat-chip.active { background: var(--text-main); color: black; font-weight: 700; border-color: transparent; }
 
-        /* Widok wiadomości */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: #040406; }
+        /* Okno czatu */
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: #020204; }
         .msg-wrapper { display: flex; flex-direction: column; max-width: 85%; width: fit-content; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.them { align-self: flex-start; align-items: flex-start; }
-        
         .msg-container-inline { display: flex; align-items: center; gap: 8px; width: 100%; }
         .msg { padding: 14px 18px; border-radius: 22px; font-size: 16px; line-height: 1.4; position: relative; word-break: break-word; }
         .msg.me { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-bottom-right-radius: 4px; }
         .msg.them { background: var(--bg-field); color: var(--text-main); border: 1px solid rgba(255,255,255,0.02); border-bottom-left-radius: 4px; }
-        
         .ghost-blur { filter: blur(6px); transition: filter 0.15s ease; user-select: none; -webkit-user-select: none; cursor: pointer; }
         .ghost-blur:active { filter: blur(0px); }
-
         .msg-delete-icon { color: var(--snap-red); font-size: 14px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; background: rgba(255,69,58,0.1); border-radius: 50%; width: 28px; height: 28px; }
 
-        /* Panel wprowadzania tekstu - Ultra wygodny pod kciuk */
-        .input-area { padding: 14px 16px cubic-bezier(0.1, 0.7, 0.1, 1); background: var(--bg-surface); display: flex; gap: 10px; border-top: 1px solid var(--border); align-items: center; padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+        .input-area { padding: 14px 16px; background: var(--bg-surface); display: flex; gap: 10px; border-top: 1px solid var(--border); align-items: center; padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
         .input-wrapper { flex: 1; display: flex; align-items: center; background: var(--bg-field); border-radius: 20px; padding-right: 6px; border: 1px solid var(--border); }
         .input-wrapper input { background: transparent; border: none; color: white; padding: 14px 16px; font-size: 16px; flex: 1; outline: none; }
         .icon-btn { background: var(--bg-field); border: 1px solid var(--border); color: white; width: 48px; height: 48px; border-radius: 18px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; shrink: 0; }
         .send-btn { background: var(--snap-yellow); color: black; border: none; padding: 10px 18px; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 14px; }
 
-        /* Pasek dolny - Ergonomia iOS/Android */
-        .tab-bar { display: flex; background: rgba(15, 15, 21, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); min-height: 72px; padding-bottom: env(safe-area-inset-bottom); }
-        .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        /* PANEL APARATU - NOWOŚĆ */
+        .camera-view-container { position: relative; flex: 1; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; overflow: hidden; }
+        #cameraVideo { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; }
+        .camera-fallback-btn { position: absolute; z-index: 5; top: 40%; background: var(--bg-surface); padding: 16px; border-radius: 20px; border: 1px solid var(--border); color: white; font-weight: 700; cursor: pointer; }
+        .shutter-area { position: relative; z-index: 10; width: 100%; padding: 40px 20px; display: flex; justify-content: center; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
+        .shutter-btn { width: 76px; height: 76px; border-radius: 50%; border: 6px solid white; background: rgba(255,255,255,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(0,0,0,0.4); }
+        .shutter-btn:active { transform: scale(0.92); }
+        
+        /* Arkusz wysyłki zdjęcia z Aparatu */
+        .send-sheet-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 150000; justify-content: center; align-items: flex-end; }
+        .send-sheet { background: var(--bg-surface); border-top: 1px solid var(--border); border-radius: 30px 30px 0 0; width: 100%; max-width: 480px; height: 80vh; display: flex; flex-direction: column; padding: 20px; box-shadow: 0 -15px 40px rgba(0,0,0,0.5); }
+        .send-sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .send-sheet-search { background: var(--bg-field); border: 1px solid var(--border); border-radius: 14px; padding: 12px; width: 100%; color: white; outline: none; font-size: 15px; margin-bottom: 16px; }
+        .send-sheet-users-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .send-user-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg-field); padding: 14px 18px; border-radius: 16px; cursor: pointer; }
+        .send-user-row:hover { background: rgba(255,255,255,0.03); }
+        .send-action-btn { background: var(--snap-yellow); color: black; font-weight: 800; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; }
+
+        /* Paski Nawigacji dolnej */
+        .tab-bar { display: flex; background: rgba(10, 10, 16, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); min-height: 72px; padding-bottom: env(safe-area-inset-bottom); }
+        .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .tab-btn.active { color: var(--snap-yellow); }
         
         .panel { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--bg-main); }
         .panel.active { display: flex; }
-        #map { width: 100%; flex: 1; background: #050508; }
+        #map { width: 100%; flex: 1; background: #030305; }
 
-        /* Panel Admina */
         .admin-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 24px; padding: 22px; margin: 16px; display: flex; flex-direction: column; gap: 12px; }
-        .admin-card h3 { font-size: 18px; font-weight: 800; color: #fff; }
         .admin-btn { background: var(--snap-red); color: white; font-weight: 700; border: none; padding: 14px; border-radius: 14px; cursor: pointer; width: 100%; font-size: 14px; }
 
-        /* Modal Relacji */
+        /* Modale Relacji */
         .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3,3,5,0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .story-modal .story-text-content { background: var(--bg-surface); border: 1px solid var(--border); padding: 60px 24px; border-radius: 30px; width: 100%; max-width: 360px; text-align: center; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+        .story-modal .story-text-content { background: var(--bg-surface); border: 1px solid var(--border); padding: 60px 24px; border-radius: 30px; width: 100%; max-width: 360px; text-align: center; font-size: 26px; font-weight: 800; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
         .story-top-info { position: absolute; top: 40px; left: 24px; right: 24px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; z-index: 100000; }
         .delete-story-btn { background: rgba(255, 59, 48, 0.15); color: #ff453a; border: 1px solid rgba(255, 59, 48, 0.25); padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
@@ -136,18 +158,29 @@
         </div>
     </div>
 
-    <!-- KONTENER APLIKACJI -->
+    <!-- KONTENER GŁÓWNY -->
     <div class="app-container" id="appContainer">
         <!-- PANEL CZATU -->
         <div id="panel-chat" class="panel active">
             <div class="header">
                 <div class="header-top">
-                    <div class="profile-badge">👻 <span id="profileNameWrapper"><b id="displayMyName">...</b></span></div>
+                    <!-- AWATAR PROFILOWY (LEWY GÓRNY RÓG) -->
+                    <div class="profile-section" onclick="window.triggerAvatarUpload()" title="Kliknij, aby zmienić zdjęcie profilowe">
+                        <div class="user-avatar-container" id="myAvatarBox">
+                            <span class="user-avatar-placeholder" id="myAvatarFallback">??</span>
+                        </div>
+                        <div class="profile-badge"><span id="displayMyName">...</span></div>
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="window.uploadAvatar(this)">
                     <button onclick="location.reload()" style="padding: 10px 16px; font-size: 13px; font-weight:700; background: var(--bg-field); border: 1px solid var(--border); color:white; border-radius:12px; cursor:pointer;">Wyloguj</button>
                 </div>
-                <div class="search-box">
-                    <input type="text" id="searchUser" placeholder="Szukaj znajomego po nicku...">
-                    <button onclick="window.startChatWithSearchedUser()">Czat</button>
+                
+                <!-- WYSZUKIWARKA Z SYSTEMEM LIVE MATCH -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="searchUser" placeholder="Wpisz pierwsze 3 litery znajomego..." autocomplete="off">
+                    </div>
+                    <div class="search-live-results" id="searchLiveResults"></div>
                 </div>
             </div>
 
@@ -171,7 +204,7 @@
             </div>
 
             <div id="chat-box">
-                <div style="text-align: center; color: var(--text-muted); margin-top: 60px; font-size:15px; padding: 0 30px; line-height: 1.6;">Wyszukaj znajomego lub wybierz dymek, aby zacząć pisać bezpieczne wiadomości widmo.</div>
+                <div style="text-align: center; color: var(--text-muted); margin-top: 60px; font-size:15px; padding: 0 30px; line-height: 1.6;">Wyszukaj znajomego powyżej lub kliknij aktywny dymek rozmowy.</div>
             </div>
 
             <div class="input-area" id="inputArea" style="display: none;">
@@ -184,38 +217,60 @@
             </div>
         </div>
 
+        <!-- PANEL APARATU (NOWOŚĆ) -->
+        <div id="panel-camera" class="panel">
+            <div class="camera-view-container">
+                <video id="cameraVideo" autoplay playsinline muted></video>
+                <div class="camera-fallback-btn" id="cameraFallback" onclick="document.getElementById('cameraFileInput').click()">
+                    Wyhaszuj zdjęcie z galerii 🖼️
+                </div>
+                <input type="file" id="cameraFileInput" accept="image/*" style="display:none;" onchange="window.handleCameraFileFallback(this)">
+                
+                <div class="shutter-area">
+                    <div class="shutter-btn" onclick="window.capturePhoto()"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- PANEL MAPY -->
         <div id="panel-map" class="panel">
             <div id="map"></div>
         </div>
 
-        <!-- PANEL ADMINISTRATORA (DLA ogxldtg) -->
+        <!-- PANEL ADMINA -->
         <div id="panel-admin" class="panel">
-            <div class="header">
-                <div class="profile-badge" style="padding: 6px 0;">👑 SYSTEM ROOT INTERFACE</div>
-            </div>
-            
-            <!-- NOWE: NADAWANIE UPRAWNIEŃ MODERATORA -->
+            <div class="header"><div class="profile-badge" style="padding: 6px 0;">👑 SYSTEM ROOT INTERFACE</div></div>
             <div class="admin-card">
                 <h3>Nadaj Uprawnienia MOD</h3>
-                <p style="font-size: 13px; color: var(--text-muted);">Użytkownik z rolą MOD uzyska prawo do natychmiastowego kasowania wiadomości i relacji każdego profilu w bazie.</p>
-                <input type="text" id="modTargetUser" placeholder="Nick użytkownika (np. janusz)">
+                <input type="text" id="modTargetUser" placeholder="Nick użytkownika">
                 <input type="password" id="modAdminPassword" placeholder="Kod autoryzacji Root (np. 2008)">
                 <button class="admin-btn" style="background: var(--snap-purple);" onclick="window.grantModeratorRights()">Autoryzuj i Nadaj MOD</button>
             </div>
-
             <div class="admin-card">
                 <h3>Zarządzanie Systemem</h3>
                 <p style="color: var(--snap-blue); font-size: 14px;">Zalogowano jako Główny Administrator: <b>ogxldtg</b>.</p>
-                <button class="admin-btn" onclick="alert('Baza danych została zoptymalizowana!')">Wyczyść Logi Systemowe</button>
+                <button class="admin-btn" onclick="alert('System zoptymalizowany!')">Wyczyść Logi</button>
             </div>
         </div>
 
-        <!-- NAVBAR NA DOLE (Kompaktowa pod kciuk) -->
+        <!-- PANELE STRONY DOLNEJ (ROZBUDOWANE O APARAT) -->
         <div class="tab-bar">
             <button class="tab-btn active" id="btn-tab-chat" onclick="window.switchTab('chat')">💬 <span>Czaty</span></button>
+            <button class="tab-btn" id="btn-tab-camera" onclick="window.switchTab('camera')">📸 <span>Aparat</span></button>
             <button class="tab-btn" id="btn-tab-map" onclick="window.switchTab('map')">🗺️ <span>SnapMap</span></button>
             <button class="tab-btn" id="btn-tab-admin" style="display: none; color: var(--snap-purple);" onclick="window.switchTab('admin')">👑 <span>Admin</span></button>
+        </div>
+    </div>
+
+    <!-- MODAL WYSYŁKI Z APARATU (NOWOŚĆ) -->
+    <div class="send-sheet-modal" id="sendSheetModal">
+        <div class="send-sheet">
+            <div class="send-sheet-header">
+                <h3 style="font-weight:800;">Wyślij Snapa do...</h3>
+                <button onclick="window.closeSendSheet()" style="background:none; border:none; color:var(--snap-red); font-weight:700; font-size:15px; cursor:pointer;">Anuluj</button>
+            </div>
+            <input type="text" class="send-sheet-search" id="sendSheetSearchInput" placeholder="Wpisz nazwę, aby przefiltrować..." oninput="window.filterSendSheetUsers()">
+            <div class="send-sheet-users-list" id="sendSheetUsersList"></div>
         </div>
     </div>
 
@@ -232,10 +287,10 @@
         <div id="storyModalContent" style="width: 100%; display: flex; justify-content: center; align-items: center;" onclick="window.closeStoryModal()"></div>
     </div>
 
-    <!-- FIREBASE ENGINE v3.0 -->
+    <!-- SILNIK CORE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDQ3TtLG4Vem4LiElySooJnnJPQy-DRBSw",
@@ -255,6 +310,9 @@
         let map = null;
         let mapMarker = null;
         let activeListeners = [];
+        let allSystemUsers = []; 
+        let localCapturedPhotoBase64 = null; 
+        let cameraStream = null;
 
         window.toggleAuthScreens = function(showLogin) {
             document.getElementById('loginScreen').style.display = showLogin ? 'flex' : 'none';
@@ -269,15 +327,14 @@
             try {
                 const userRef = doc(db, "users", user);
                 const userSnap = await getDoc(userRef);
-
                 if(userSnap.exists()) return alert("Ten użytkownik już istnieje!");
 
-                const hashedPassword = CryptoJS.SHA256(pass).toString();
                 await setDoc(userRef, {
                     username: user,
-                    password: hashedPassword,
+                    password: CryptoJS.SHA256(pass).toString(),
                     createdAt: Date.now(),
-                    canDeleteEverything: false
+                    canDeleteEverything: false,
+                    avatar: ""
                 });
 
                 alert("Konto utworzone!");
@@ -293,14 +350,12 @@
             try {
                 const userRef = doc(db, "users", user);
                 const userSnap = await getDoc(userRef);
-
                 if(!userSnap.exists()) return alert("Brak użytkownika!");
 
                 const userData = userSnap.data();
                 if(userData.password !== CryptoJS.SHA256(pass).toString()) return alert("Błędne hasło!");
 
                 currentUser = { username: user, ...userData };
-                
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'flex';
                 document.getElementById('displayMyName').innerText = currentUser.username;
@@ -309,39 +364,56 @@
                     document.getElementById('btn-tab-admin').style.display = 'flex';
                 }
 
+                // Odświeżenie/Załadowanie awatara zalogowanego
+                refreshAvatarUI(currentUser.avatar);
                 initApp();
             } catch(e) { alert("Błąd logowania: " + e.message); }
         };
 
-        // NOWE: Funkcja nadawania uprawnień MOD z hasłem 2008
-        window.grantModeratorRights = async function() {
-            const target = document.getElementById('modTargetUser').value.trim().toLowerCase();
-            const password = document.getElementById('modAdminPassword').value.trim();
-
-            if(!target || !password) return alert("Wypełnij dane!");
-            if(password !== "2008") return alert("BŁĘDNE HASŁO AKTYWACYJNE ADMINA!");
-
-            try {
-                const targetRef = doc(db, "users", target);
-                const targetSnap = await getDoc(targetRef);
-
-                if(!targetSnap.exists()) return alert("Nie znaleziono takiego użytkownika!");
-
-                await updateDoc(targetRef, { canDeleteEverything: true });
-                alert(`Pomyślnie nadano uprawnienia MOD dla @${target}. Może usuwać wszystko!`);
-                
-                document.getElementById('modTargetUser').value = '';
-                document.getElementById('modAdminPassword').value = '';
-            } catch(e) { alert("Błąd: " + e.message); }
+        // Zmiana i zapis zdjęcia profilowego (Base64)
+        window.triggerAvatarUpload = function() {
+            document.getElementById('avatarInput').click();
         };
 
+        window.uploadAvatar = async function(fileInput) {
+            const file = fileInput.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onloadend = async function() {
+                const base64Data = reader.result;
+                try {
+                    await updateDoc(doc(db, "users", currentUser.username), { avatar: base64Data });
+                    refreshAvatarUI(base64Data);
+                    alert("Zdjęcie profilowe zaktualizowane!");
+                } catch(e) { alert("Błąd zapisu awatara: " + e.message); }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function refreshAvatarUI(avatarData) {
+            const box = document.getElementById('myAvatarBox');
+            if(avatarData && avatarData.trim() !== "") {
+                box.innerHTML = `<img src="${avatarData}" alt="Avatar">`;
+            } else {
+                box.innerHTML = `<span class="user-avatar-placeholder" id="myAvatarFallback">${currentUser.username.substring(0,2)}</span>`;
+            }
+        }
+
         function initApp() {
-            // Nasłuchiwanie zmian na koncie zalogowanego usera, aby na bieżąco mieć jego uprawnienia
+            // Real-time listen na uprawnienia profilu
             onSnapshot(doc(db, "users", currentUser.username), (snapshot) => {
                 if(snapshot.exists()) {
                     currentUser.canDeleteEverything = snapshot.data().canDeleteEverything || false;
+                    if(snapshot.data().avatar) refreshAvatarUI(snapshot.data().avatar);
                 }
             });
+
+            // Cache'owanie użytkowników do wyszukiwarki live i listy aparatów
+            loadAllUsersCache();
+
+            // Uruchomienie wyszukiwarki live input event
+            initLiveSearchEngine();
 
             try { listenToGlobalStories(); } catch(e) {}
             try { listenToActiveChatsList(); } catch(e) {}
@@ -351,7 +423,201 @@
             document.getElementById('imageInput').addEventListener('change', function() { sendImage(this); });
         }
 
-        // NAPRAWA: Zmiana kolekcji z 'ghost_messages' na 'messages' (zgodnie z bazą)
+        // Pobranie listy userów z bazy danych
+        async function loadAllUsersCache() {
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                allSystemUsers = [];
+                snap.forEach(docSnap => {
+                    if(docSnap.id !== currentUser.username) {
+                        allSystemUsers.push({ username: docSnap.id, ...docSnap.data() });
+                    }
+                });
+            } catch(e) { console.error("Cache error: ", e); }
+        }
+
+        // SILNIK LIVE SEARCH (3 pierwsze litery i dopasowania w locie)
+        function initLiveSearchEngine() {
+            const input = document.getElementById('searchUser');
+            const resultBox = document.getElementById('searchLiveResults');
+
+            input.addEventListener('input', () => {
+                const val = input.value.trim().toLowerCase();
+                if(val.length < 1) {
+                    resultBox.style.display = 'none';
+                    return;
+                }
+
+                // Szukanie pasujących nazw
+                const matches = allSystemUsers.filter(u => u.username.includes(val));
+
+                if(matches.length > 0) {
+                    resultBox.innerHTML = '';
+                    matches.forEach(match => {
+                        const item = document.createElement('div');
+                        item.className = 'search-result-item';
+                        
+                        let imgHTML = match.avatar 
+                            ? `<img src="${match.avatar}" class="search-result-avatar">`
+                            : `<div class="search-result-avatar">${match.username.substring(0,2).toUpperCase()}</div>`;
+
+                        item.innerHTML = `${imgHTML} <span style="font-weight:600;">@${match.username}</span>`;
+                        
+                        item.addEventListener('click', () => {
+                            selectChat(match.username);
+                            input.value = '';
+                            resultBox.style.display = 'none';
+                        });
+                        resultBox.appendChild(item);
+                    });
+                    resultBox.style.display = 'block';
+                } else {
+                    resultBox.innerHTML = `<div style="padding:12px; color:var(--text-muted); font-size:14px; text-align:center;">Brak pasujących znajomych</div>`;
+                    resultBox.style.display = 'block';
+                }
+            });
+
+            // Zamknij okno przy kliknięciu poza
+            document.addEventListener('click', (e) => {
+                if(!e.target.closest('.search-container')) {
+                    resultBox.style.display = 'none';
+                }
+            });
+        }
+
+        // OBSŁUGA FUNKCJI APARATU
+        async function startCameraHardware() {
+            const video = document.getElementById('cameraVideo');
+            const fallbackBtn = document.getElementById('cameraFallback');
+            try {
+                if(cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: false
+                });
+                video.srcObject = cameraStream;
+                video.style.display = 'block';
+                fallbackBtn.style.display = 'none';
+            } catch(e) {
+                console.log("Kamera zablokowana lub brak urządzenia, używam fallbacku plikowego.");
+                video.style.display = 'none';
+                fallbackBtn.style.display = 'block';
+            }
+        }
+
+        function stopCameraHardware() {
+            if(cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+
+        window.handleCameraFileFallback = function(input) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                localCapturedPhotoBase64 = reader.result;
+                window.openSendSheet();
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.capturePhoto = function() {
+            const video = document.getElementById('cameraVideo');
+            if(!cameraStream) {
+                document.getElementById('cameraFileInput').click();
+                return;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            localCapturedPhotoBase64 = canvas.toDataURL('image/jpeg');
+            window.openSendSheet();
+        };
+
+        window.openSendSheet = async function() {
+            await loadAllUsersCache(); // Odśwież listę znajomych przed otwarciem
+            document.getElementById('sendSheetModal').style.display = 'flex';
+            window.renderSendSheetUsers(allSystemUsers);
+        };
+
+        window.closeSendSheet = function() {
+            document.getElementById('sendSheetModal').style.display = 'none';
+            localCapturedPhotoBase64 = null;
+        };
+
+        window.renderSendSheetUsers = function(usersArray) {
+            const listContainer = document.getElementById('sendSheetUsersList');
+            listContainer.innerHTML = '';
+            
+            usersArray.forEach(u => {
+                const row = document.createElement('div');
+                row.className = 'send-user-row';
+                row.innerHTML = `
+                    <span style="font-weight:700;">@${u.username}</span>
+                    <button class="send-action-btn">Wyślij Snap</button>
+                `;
+                row.querySelector('button').addEventListener('click', () => window.executeSendPhotoFromCamera(u.username));
+                listContainer.appendChild(row);
+            });
+        };
+
+        window.filterSendSheetUsers = function() {
+            const val = document.getElementById('sendSheetSearchInput').value.trim().toLowerCase();
+            const filtered = allSystemUsers.filter(u => u.username.includes(val));
+            window.renderSendSheetUsers(filtered);
+        };
+
+        window.executeSendPhotoFromCamera = async function(targetReceiver) {
+            if(!localCapturedPhotoBase64) return;
+            try {
+                await addDoc(collection(db, "messages"), {
+                    senderId: currentUser.username,
+                    receiverId: targetReceiver,
+                    content: localCapturedPhotoBase64,
+                    type: 'image',
+                    timestamp: Date.now()
+                });
+                
+                await setDoc(doc(db, "active_chats", `${currentUser.username}_${targetReceiver}`), {
+                    userA: currentUser.username,
+                    userB: targetReceiver,
+                    lastActive: Date.now()
+                });
+
+                alert(`Znikający Snap pomyślnie wysłany do @${targetReceiver}!`);
+                window.closeSendSheet();
+                window.switchTab('chat');
+            } catch(e) { alert("Błąd wysyłki: " + e.message); }
+        };
+
+        // PRZEŁĄCZANIE ZAKŁADEK (ROZSZERZONE)
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(`panel-${tab}`).classList.add('active');
+            document.getElementById(`btn-tab-${tab}`).classList.add('active');
+
+            if(tab === 'camera') {
+                startCameraHardware();
+            } else {
+                stopCameraHardware();
+            }
+
+            if(tab === 'map') {
+                setTimeout(() => { if(map) map.invalidateSize(); }, 250);
+                updateMyLocation();
+            }
+        };
+
+        // NASŁUCHIWANIE WIADOMOŚCI
         function listenToMessages(chatWith) {
             activeListeners.forEach(unsub => unsub());
             activeListeners = [];
@@ -371,8 +637,6 @@
                         const msgData = change.doc.data();
                         const msgId = change.doc.id;
                         renderGhostMessage(msgData, msgId);
-                        
-                        // Automatyczne kasowanie z bazy danych po odebraniu (Tryb GHOST)
                         try { await deleteDoc(doc(db, "messages", msgId)); } catch(e) {}
                     }
                 });
@@ -389,7 +653,6 @@
                 ? `<img src="${data.content}" style="max-width:210px; border-radius:16px; display:block;" />`
                 : data.content || '';
 
-            // Sprawdzanie uprawnień do usuwania na żądanie
             const isAuthorizedToDelete = (currentUser.username === 'ogxldtg' || currentUser.canDeleteEverything);
             let deleteButtonHTML = isAuthorizedToDelete 
                 ? `<span class="msg-delete-icon" onclick="window.deleteSingleMessage('${id}', this)">🗑️</span>` 
@@ -409,11 +672,11 @@
         }
 
         window.deleteSingleMessage = async function(msgId, element) {
-            if(confirm("Czy na pewno chcesz bezpowrotnie usunąć tę wiadomość ze struktury bazy danych?")) {
+            if(confirm("Czy usunąć bezpowrotnie tę wiadomość?")) {
                 try {
                     await deleteDoc(doc(db, "messages", msgId));
                     element.closest('.msg-wrapper').remove();
-                } catch(e) { alert("Błąd usuwania: " + e.message); }
+                } catch(e) { alert(e.message); }
             }
         };
 
@@ -473,7 +736,7 @@
         window.createNewStory = async function() {
             const content = prompt("Treść Twojej relacji:");
             if(!content) return;
-            const maxViews = prompt("Ile razy można to wyświetlić? (1 lub 2):", "1");
+            const maxViews = prompt("Ile wyświetleń? (1 lub 2):", "1");
             const allowedViews = (maxViews === "2") ? 2 : 1;
 
             await addDoc(collection(db, "stories"), {
@@ -485,10 +748,9 @@
                 viewedBy: [],
                 createdAt: Date.now()
             });
-            alert("Relacja opublikowana!");
+            alert("Relacja dodana!");
         };
 
-        // NAPRAWA: Sprawdzanie wyświetleń relacji (koniec pętli nieskończonej)
         function listenToGlobalStories() {
             const container = document.getElementById('storiesContainer');
             const q = query(collection(db, "stories"));
@@ -505,18 +767,15 @@
                     const currentViews = story.viewedBy || [];
                     const userViewsCount = currentViews.filter(u => u === currentUser.username).length;
                     
-                    // Jeśli zalogowany obejrzał już tyle razy ile wynosi limit - relacja znika z jego oczu!
-                    if(userViewsCount >= (story.maxViews || 1)) {
-                        return; 
-                    }
+                    if(userViewsCount >= (story.maxViews || 1)) return; 
 
                     const wrapper = document.createElement('div');
                     wrapper.className = "story-wrapper";
                     wrapper.innerHTML = `
                         <div class="story-circle" id="circle-${storyId}">
-                            <div class="story-text-avatar">${story.author.substring(0, 2)}</div>
+                            <div style="width:100%; height:100%; border-radius:50%; background:linear-gradient(135deg, #2a1254 0%, #004475 100%); display:flex; align-items:center; justify-content:center; font-weight:800;">${story.author.substring(0,2)}</div>
                         </div>
-                        <span style="font-size:12px; color:#fff; font-weight:600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%; text-align:center;">${story.author}</span>
+                        <span style="font-size:12px; color:#fff; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; text-align:center;">${story.author}</span>
                     `;
                     wrapper.querySelector('.story-circle').addEventListener('click', () => openStory(storyId, story));
                     container.appendChild(wrapper);
@@ -535,7 +794,6 @@
             badgeZone.innerText = `Limit: ${story.maxViews}x`;
             contentZone.innerHTML = `<div class="story-text-content">${story.content}</div>`;
 
-            // Uprawnienia do usuwania relacji: Właściciel, ogxldtg lub nadany MOD
             if(story.author === currentUser.username || currentUser.username === 'ogxldtg' || currentUser.canDeleteEverything) {
                 deleteContainer.innerHTML = `<button class="delete-story-btn">Usuń</button>`;
                 deleteContainer.querySelector('button').addEventListener('click', () => window.deleteStory(storyId));
@@ -547,23 +805,9 @@
 
             if(story.author !== currentUser.username) {
                 const currentViews = story.viewedBy || [];
-                currentViews.push(currentUser.username); // Dodajemy instancję obejrzenia do tablicy
+                currentViews.push(currentUser.username);
                 
-                const timesThisUserWatched = currentViews.filter(u => u === currentUser.username).length;
-
-                if(story.maxViews === 2 && timesThisUserWatched === 2) {
-                    try {
-                        await addDoc(collection(db, "ghost_notifications"), {
-                            targetUser: story.author,
-                            senderUser: currentUser.username,
-                            message: `Użytkownik ${currentUser.username} odtworzył relację 2. i zarazem ostatni raz!`,
-                            timestamp: Date.now()
-                        });
-                    } catch(e){}
-                }
-
                 try {
-                    // Aktualizacja danych w Firebase przy użyciu zwykłego nadpisania zamiast wadliwego arrayUnion
                     await updateDoc(doc(db, "stories", storyId), {
                         viewsCount: (story.viewsCount || 0) + 1,
                         viewedBy: currentViews
@@ -577,30 +821,25 @@
         };
 
         window.deleteStory = async function(storyId) {
-            if(confirm("Czy całkowicie skasować tę relację z serwera aplikacji?")) {
+            if(confirm("Czy całkowicie usunąć tę relację?")) {
                 await deleteDoc(doc(db, "stories", storyId));
                 window.closeStoryModal();
             }
         };
 
-        function listenToPrivateNotifications() {
-            const q = query(collection(db, "ghost_notifications"), where("targetUser", "==", currentUser.username));
-            onSnapshot(q, (snapshot) => {
-                snapshot.docChanges().forEach(async (change) => {
-                    if(change.type === "added") {
-                        const notif = change.doc.data();
-                        alert(`🔔 SnapAlert: ${notif.message}`);
-                        try { await deleteDoc(doc(db, "ghost_notifications", change.doc.id)); } catch(e){}
-                    }
-                });
-            });
-        }
+        window.grantModeratorRights = async function() {
+            const target = document.getElementById('modTargetUser').value.trim().toLowerCase();
+            const password = document.getElementById('modAdminPassword').value.trim();
 
-        window.createNewShortcut = async function() {
-            const name = prompt("Podaj nazwę skrótu grupy:");
-            if(!name) return;
-            activeShortcut = name;
-            alert(`Skrót [${name}] aktywowany.`);
+            if(!target || !password) return alert("Uzupełnij pola!");
+            if(password !== "2008") return alert("BŁĘDNE HASŁO!");
+
+            try {
+                await updateDoc(doc(db, "users", target), { canDeleteEverything: true });
+                alert(`Nadano uprawnienia MOD dla @${target}!`);
+                document.getElementById('modTargetUser').value = '';
+                document.getElementById('modAdminPassword').value = '';
+            } catch(e) { alert(e.message); }
         };
 
         function listenToActiveChatsList() {
@@ -613,7 +852,7 @@
 
                 snapshot.forEach((docSnap) => {
                     const c = docSnap.data();
-                    if(!c || !c.userA || !c.userB) return;
+                    if(!c) return;
                     let target = (c.userA === currentUser.username) ? c.userB : c.userA;
                     
                     if(target !== currentUser.username && !addedUsers.has(target)) {
@@ -628,17 +867,6 @@
             });
         }
 
-        window.startChatWithSearchedUser = async function() {
-            const target = document.getElementById('searchUser').value.trim().toLowerCase();
-            if(!target || target === currentUser.username) return alert("Nieprawidłowy nick!");
-
-            const userRef = doc(db, "users", target);
-            const userSnap = await getDoc(userRef);
-
-            if(!userSnap.exists()) return alert("Taki użytkownik nie istnieje.");
-            selectChat(target);
-        };
-
         function selectChat(username, element = null) {
             activeChatUser = username;
             document.getElementById('currentChatTitle').innerText = `Rozmowa z: @${username} ${activeShortcut ? `[${activeShortcut}]` : ''}`;
@@ -650,24 +878,16 @@
             listenToMessages(username);
         }
 
-        window.switchTab = function(tab) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-            document.getElementById(`panel-${tab}`).classList.add('active');
-            document.getElementById(`btn-tab-${tab}`).classList.add('active');
-
-            if(tab === 'map') {
-                setTimeout(() => { if(map) map.invalidateSize(); }, 250);
-                updateMyLocation();
-            }
+        window.createNewShortcut = async function() {
+            const name = prompt("Nazwa skrótu grupy:");
+            if(!name) return;
+            activeShortcut = name;
+            alert(`Skrót aktywowany.`);
         };
 
         function initSnapMap() {
             map = L.map('map', { zoomControl: false }).setView([52.237, 21.017], 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; CartoDB'
-            }).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         }
 
         function updateMyLocation() {
@@ -675,16 +895,23 @@
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-
-                    if (mapMarker) {
-                        mapMarker.setLatLng([lat, lng]);
-                    } else {
-                        mapMarker = L.marker([lat, lng]).addTo(map)
-                            .bindPopup(`<b>Ty (${currentUser.username})</b><br>Tryb maskowania aktywny.`).openPopup();
-                    }
+                    if (mapMarker) mapMarker.setLatLng([lat, lng]);
+                    else mapMarker = L.marker([lat, lng]).addTo(map).bindPopup(`<b>Ty (${currentUser.username})</b>`).openPopup();
                     map.setView([lat, lng], 14);
                 });
             }
+        }
+
+        function listenToPrivateNotifications() {
+            const q = query(collection(db, "ghost_notifications"), where("targetUser", "==", currentUser.username));
+            onSnapshot(q, (snapshot) => {
+                snapshot.docChanges().forEach(async (change) => {
+                    if(change.type === "added") {
+                        alert(`🔔 SnapAlert: ${change.doc.data().message}`);
+                        try { await deleteDoc(doc(db, "ghost_notifications", change.doc.id)); } catch(e){}
+                    }
+                });
+            });
         }
     </script>
 </body>
