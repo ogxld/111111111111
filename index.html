@@ -1,0 +1,394 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+	<head>
+		<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<title>SuperApp z Panelem Admina</title>
+				<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+				<style>
+					* { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+					body { background: #0b0b0c; color: #f5f6f7; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+					/* Ekrany Logowania / Rejestracji */
+					.auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 20px; background: linear-gradient(135deg, #0f0c20 0%, #060608 100%); }
+					.auth-box { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); padding: 35px; border-radius: 24px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
+					.auth-box h2 { font-size: 28px; margin-bottom: 20px; background: linear-gradient(45deg, #0084ff, #a445ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+					.auth-links { margin-top: 15px; font-size: 14px; color: #aaa; cursor: pointer; text-decoration: underline; }
+
+					/* Główny Interfejs */
+					.app-container { display: flex; flex-direction: column; height: 100vh; width: 100%; max-width: 600px; background: #16161a; display: none; overflow: hidden; position: relative; }
+
+					/* Górny panel */
+					.header { background: #1e1e24; padding: 12px 20px; border-bottom: 1px solid #2a2a35; }
+					.search-box { display: flex; gap: 10px; margin-top: 8px; }
+
+					/* Zakładki na dole */
+					.tab-bar { display: flex; background: #1e1e24; border-top: 1px solid #2a2a35; min-height: 60px; z-index: 1000; }
+					.tab-btn { flex: 1; background: none; border: none; color: #777; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+					.tab-btn.active { color: #0084ff; }
+
+					/* Widoki paneli */
+					.panel { flex: 1; display: none; flex-direction: column; overflow: hidden; background: #121214; }
+					.panel.active { display: flex; }
+
+					/* Czat elementy */
+					#chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+					.msg { padding: 12px 16px; border-radius: 18px; max-width: 75%; width: fit-content; word-break: break-word; font-size: 15px; }
+					.msg.me { background: linear-gradient(135deg, #0076ff, #0084ff); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+					.msg.them { background: #242526; color: #e4e6eb; align-self: flex-start; border-bottom-left-radius: 4px; }
+					.input-area { padding: 16px; background: #1e1e24; display: flex; gap: 10px; border-top: 1px solid #2a2a35; }
+
+					/* Mapa i Admin */
+					#map { width: 100%; flex: 1; z-index: 1; }
+					.admin-list { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+					.admin-user-row { background: #1e1e24; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2a2a35; }
+
+					/* Kropki statusu */
+					.status-dot { width: 10px; height: 10px; background: #444; border-radius: 50%; display: inline-block; }
+					.status-dot.online { background: #31a24c; box-shadow: 0 0 8px #31a24c; }
+
+					/* Style ogólne */
+					input { background: #2a2a35; border: 1px solid transparent; color: white; padding: 12px 18px; border-radius: 24px; font-size: 15px; flex: 1; outline: none; margin-bottom: 8px; }
+					button { background: #0084ff; color: white; border: none; padding: 12px 20px; border-radius: 24px; font-weight: 600; cursor: pointer; }
+					.recent-chats { padding: 10px 20px; background: #1a1a20; border-bottom: 1px solid #25252e; display: flex; gap: 10px; overflow-x: auto; }
+					.chat-chip { background: #252530; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; color: #b0b3b8; }
+					.chat-chip.active { background: #0084ff; color: white; }
+
+					.delete-pin-btn { background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 8px; display: block; width: 100%; text-align: center; }
+					.delete-pin-btn:hover { background: #e03b3b; }
+					.leaflet-popup-content { color: #000 !important; }
+
+					/* Przycisk BAN */
+					.ban-btn { background: #e03b3b; font-size: 11px; padding: 6px 12px; border-radius: 12px; font-weight: bold; margin-left: 10px; color: white; border: none; cursor: pointer; }
+					.ban-btn.unban { background: #31a24c; }
+				</style>
+				<!-- Biblioteka do superszybkiego haszowania w kodzie (brawurowo stabilna) -->
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+			</head>
+	<body>
+
+		<!-- OKNO LOGOWANIA -->
+		<div class="auth-screen" id="loginScreen">
+			<div class="auth-box">
+				<h2>Zaloguj się 💬</h2>
+				<input type="text" id="loginUsername" placeholder="Twój nick...">
+					<input type="password" id="loginPassword" placeholder="Hasło...">
+						<button onclick="handleLogin()" style="width: 100%; margin-top: 10px;">Zaloguj</button>
+						<div class="auth-links" onclick="toggleAuthScreens(false)">Nie masz konta? Zarejestruj się</div>
+					</div>
+		</div>
+
+		<!-- OKNO REJESTRACJI -->
+		<div class="auth-screen" id="registerScreen" style="display: none;">
+			<div class="auth-box">
+				<h2>Zarejestruj się ✨</h2>
+				<input type="text" id="regUsername" placeholder="Wymyśl nick...">
+					<input type="password" id="regPassword" placeholder="Wymyśl hasło...">
+						<button onclick="handleRegister()" style="width: 100%; margin-top: 10px;">Stwórz konto</button>
+						<div class="auth-links" onclick="toggleAuthScreens(true)">Masz już konto? Zaloguj się</div>
+					</div>
+		</div>
+
+		<!-- GŁÓWNA APLIKACJA -->
+		<div class="app-container" id="appContainer">
+
+			<!-- PANEL CZATU -->
+			<div id="panel-chat" class="panel active">
+				<div class="header">
+					<div style="display: flex; justify-content: space-between; align-items: center;">
+						<span>
+							Profil: <b id="displayMyName" style="color: #0084ff;"></b> <span id="adminBadge" style="color: #a445ff; font-weight: bold; display: none;">[ADMIN]</span>
+						</span>
+						<button onclick="location.reload()" style="padding: 4px 10px; font-size: 11px; background: #333;">Wyloguj</button>
+					</div>
+					<div class="search-box">
+						<input type="text" id="searchUser" placeholder="Wpisz nick znajomego...">
+							<button onclick="startChatWithSearchedUser()">Czat</button>
+						</div>
+				</div>
+				<div class="recent-chats" id="recentChats"></div>
+				<div id="chat-box">
+					<div style="text-align: center; color: #555; margin-top: 40px;">Wyszukaj znajomego, aby zacząć pisać.</div>
+				</div>
+				<div class="input-area" id="inputArea" style="display: none;">
+					<input type="text" id="messageInput" placeholder="Napisz wiadomość...">
+						<button onclick="sendMessage()">Wyślij</button>
+					</div>
+			</div>
+
+			<!-- PANEL MAPY -->
+			<div id="panel-map" class="panel">
+				<div style="background: #1e1e24; padding: 10px; text-align: center; font-size: 12px; color: #aaa;">Kliknij na mapę, aby dodać pinezkę widoczną dla wszystkich.</div>
+				<div id="map"></div>
+			</div>
+
+			<!-- PANEL ADMINA -->
+			<div id="panel-admin" class="panel">
+				<div style="background: #1e1e24; padding: 15px; text-align: center; font-weight: bold; color: #a445ff; border-bottom: 1px solid #2a2a35;">PANEL ADMINISTRATORA - STATUS UŻYTKOWNIKÓW NA ŻYWO</div>
+				<div class="admin-list" id="adminUsersList"></div>
+			</div>
+
+			<!-- DOLNE ZAKŁADKI -->
+			<div class="tab-bar">
+				<button class="tab-btn active" id="btn-tab-chat" onclick="switchTab('chat')">
+					💬 <span>Czat</span>
+				</button>
+				<button class="tab-btn" id="btn-tab-map" onclick="switchTab('map')">
+					📍 <span>Mapa</span>
+				</button>
+				<button class="tab-btn" id="btn-tab-admin" onclick="switchTab('admin')" style="display: none;">
+					👑 <span>Admin</span>
+				</button>
+			</div>
+
+		</div>
+
+		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+			import { getFirestore, collection, addDoc, onSnapshot, query, where, doc, getDoc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+			const firebaseConfig = { projectId: "apka-32bf2" };
+			const app = initializeApp(firebaseConfig);
+			const db = getFirestore(app);
+
+			let myNick = "";
+			let currentTargetUser = "";
+			let currentChatRoomId = "";
+			let unsubscribeMessages = null;
+			let knownUsers = new Set();
+			let map, markersGroup;
+
+			// Błyskawiczne haszowanie synchroniczne przez stabilną bibliotekę CryptoJS
+			function hashPassword(string) {
+			return CryptoJS.SHA256(string).toString();
+			}
+
+			window.toggleAuthScreens = function(showLogin) {
+			document.getElementById("loginScreen").style.display = showLogin ? "flex" : "none";
+			document.getElementById("registerScreen").style.display = showLogin ? "none" : "flex";
+			}
+
+			// REJESTRACJA (Zabezpieczona przed wielkimi literami)
+			window.handleRegister = async function() {
+			const user = document.getElementById("regUsername").value.trim().toLowerCase();
+			const pass = document.getElementById("regPassword").value.trim();
+			if(!user || !pass) return alert("Uzupełnij wszystkie pola!");
+
+			const userRef = doc(db, "users", user);
+			const userSnap = await getDoc(userRef);
+
+			if(userSnap.exists()) {
+			return alert("Taki użytkownik już istnieje!");
+			}
+
+			const securePassword = hashPassword(pass);
+			await setDoc(userRef, { password: securePassword, isBanned: false, createdAt: Date.now() });
+			alert("Konto utworzone pomyślnie! Teraz możesz się zalogować.");
+			toggleAuthScreens(true);
+			}
+
+			// LOGOWANIE (Zabezpieczone przed wielkimi literami)
+			window.handleLogin = async function() {
+			const user = document.getElementById("loginUsername").value.trim().toLowerCase();
+			const pass = document.getElementById("loginPassword").value.trim();
+			if(!user || !pass) return alert("Uzupełnij wszystkie pola!");
+
+			const userRef = doc(db, "users", user);
+			const userSnap = await getDoc(userRef);
+
+			if(!userSnap.exists()) {
+			return alert("Nieprawidłowy nick lub hasło!");
+			}
+
+			const userData = userSnap.data();
+			const securePassword = hashPassword(pass);
+
+			if(userData.password !== securePassword) {
+			return alert("Nieprawidłowy nick lub hasło!");
+			}
+
+			if(userData.isBanned === true) {
+			return alert("Twoje konto zostało ZABANOWANE przez administratora!");
+			}
+
+			myNick = user;
+			document.getElementById("displayMyName").innerText = myNick;
+			document.getElementById("loginScreen").style.display = "none";
+			document.getElementById("appContainer").style.display = "flex";
+
+			// Wykrywanie Twojego konta ADMINA ogxldtg
+			if(myNick === "ogxldtg") {
+			document.getElementById("adminBadge").style.display = "inline";
+			document.getElementById("btn-tab-admin").style.display = "flex";
+			listenToAllUsersForAdmin();
+			} else {
+			onSnapshot(doc(db, "users", myNick), (docSnap) => {
+			if (docSnap.exists() && docSnap.data().isBanned === true) {
+			alert("Zostałeś zbanowany!");
+			location.reload();
+			}
+			});
+			}
+
+			updatePresence();
+			setInterval(updatePresence, 4000);
+			initMap();
+			}
+
+			async function updatePresence() {
+			if (!myNick) return;
+			await setDoc(doc(db, "presence", myNick), { lastActive: Date.now() });
+			}
+
+			window.switchTab = function(tabName) {
+			document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+			document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+			document.getElementById(`panel-${tabName}`).classList.add('active');
+			document.getElementById(`btn-tab-${tabName}`).classList.add('active');
+
+			if (tabName === 'map') {
+			setTimeout(() => { map.invalidateSize(); }, 200);
+			}
+			}
+
+			// PANEL ADMINA DLA ogxldtg
+			function listenToAllUsersForAdmin() {
+			onSnapshot(collection(db, "users"), (usersSnapshot) => {
+			onSnapshot(collection(db, "presence"), (presenceSnapshot) => {
+			const listContainer = document.getElementById("adminUsersList");
+			listContainer.innerHTML = "";
+
+			let activeStatuses = {};
+			presenceSnapshot.forEach(doc => {
+			activeStatuses[doc.id] = doc.data().lastActive;
+			});
+
+			usersSnapshot.forEach(userDoc => {
+			const username = userDoc.id;
+			if(username === "ogxldtg") return; // Nie wyświetlaj samego siebie na liście banów
+
+			const userData = userDoc.data();
+			const lastActive = activeStatuses[username] || 0;
+			const isOnline = (Date.now() - lastActive) < 12000;
+                        const isBanned = userData.isBanned || false;
+
+                        const row = document.createElement("div");
+                        row.className = "admin-user-row";
+                        row.innerHTML = `
+                            <span>
+				👤 <b>${username}</b> ${isBanned ? '<span style="color:#e03b3b;">[ZBANOWANY]</span>' : ''}
+			</span>
+			<div style="display: flex; align-items: center; gap: 8px;">
+				<span class="status-dot ${isOnline && !isBanned ? 'online' : ''}"></span>
+				<span style="font-size: 12px; color: #aaa;">${isBanned ? 'Banned' : (isOnline ? 'Online' : 'Offline')}</span>
+				<button class="ban-btn ${isBanned ? 'unban' : ''}" onclick="toggleBan('${username}', ${isBanned})">
+					${isBanned ? 'Odbanuj' : 'BAN'}
+				</button>
+			</div>
+			`;
+			listContainer.appendChild(row);
+			});
+			});
+			});
+			}
+
+			window.toggleBan = async function(username, currentStatus) {
+			if (myNick !== "ogxldtg") return;
+			const action = currentStatus ? "odbanować" : "ZBANOWAĆ";
+			if (confirm(`Czy na pewno chcesz ${action} użytkownika ${username}?`)) {
+			await updateDoc(doc(db, "users", username), { isBanned: !currentStatus });
+			}
+			}
+
+			window.deletePin = async function(pinId) {
+			if (myNick !== "ogxldtg") return;
+			if (confirm("Czy na pewno chcesz usunąć tę pinezkę?")) {
+			try { await deleteDoc(doc(db, "pins", pinId)); } catch (e) { alert(e); }
+			}
+			}
+
+			window.startChatWithSearchedUser = function() {
+			const target = document.getElementById("searchUser").value.trim().toLowerCase();
+			if (!target || target === myNick) return alert("Błędny nick!");
+			openChatWith(target);
+			document.getElementById("searchUser").value = "";
+			}
+
+			window.openChatWith = function(targetUser) {
+			currentTargetUser = targetUser;
+			currentChatRoomId = [myNick, currentTargetUser].sort().join("_VS_");
+			knownUsers.add(currentTargetUser);
+
+			const container = document.getElementById("recentChats");
+			container.innerHTML = "";
+			knownUsers.forEach(user => {
+			const chip = document.createElement("div");
+			chip.className = `chat-chip ${user === currentTargetUser ? 'active' : ''}`;
+			chip.innerText = "👤 " + user;
+			chip.onclick = () => openChatWith(user);
+			container.appendChild(chip);
+			});
+
+			document.getElementById("inputArea").style.display = "flex";
+			listenToMessages();
+			}
+
+			function listenToMessages() {
+			if (unsubscribeMessages) unsubscribeMessages();
+			const q = query(collection(db, "messages"), where("roomId", "==", currentChatRoomId));
+			unsubscribeMessages = onSnapshot(q, (snapshot) => {
+			const chatBox = document.getElementById("chat-box");
+			chatBox.innerHTML = "";
+			let messages = [];
+			snapshot.forEach(doc => messages.push(doc.data()));
+			messages.sort((a,b) => (a.timestamp || 0) - (b.timestamp || 0));
+			messages.forEach(data => {
+			const msgDiv = document.createElement("div");
+			msgDiv.className = data.sender === myNick ? "msg me" : "msg them";
+			msgDiv.innerText = data.text || "";
+			chatBox.appendChild(msgDiv);
+			});
+			chatBox.scrollTop = chatBox.scrollHeight;
+			});
+			}
+
+			window.sendMessage = async function() {
+			const input = document.getElementById("messageInput");
+			if (input.value.trim() !== "" && currentChatRoomId) {
+			const text = input.value;
+			input.value = "";
+			await addDoc(collection(db, "messages"), { roomId: currentChatRoomId, sender: myNick, text: text, timestamp: Date.now() });
+			}
+			}
+
+			function initMap() {
+			if (map) return;
+			map = L.map('map').setView([52.237, 21.017], 6);
+			L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'OpenStreetMap' }).addTo(map);
+			markersGroup = L.layerGroup().addTo(map);
+
+			onSnapshot(collection(db, "pins"), (snapshot) => {
+			markersGroup.clearLayers();
+			snapshot.forEach((doc) => {
+			const pin = doc.data();
+			const pinId = doc.id;
+			let popupContent = `<b>${pin.createdBy}</b>: ${pin.label || "Miejsce"}`;
+
+			if (myNick === "ogxldtg") {
+			popupContent += `<button class="delete-pin-btn" onclick="deletePin('${pinId}')">Usuń pinezkę 🗑️</button>`;
+			}
+			L.marker([pin.lat, pin.lng]).addTo(markersGroup).bindPopup(popupContent);
+			});
+			});
+
+			map.on('click', async function(e) {
+			const text = prompt("Wpisz opis pinezki:");
+			if (text === null) return;
+			await addDoc(collection(db, "pins"), { lat: e.latlng.lat, lng: e.latlng.lng, label: text, createdBy: myNick, timestamp: Date.now() });
+			});
+			}
+		</script>
+	</body>
+</html>
