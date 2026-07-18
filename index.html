@@ -65,8 +65,12 @@
 
         .input-area { padding: 16px; background: #1e1e24; display: flex; gap: 10px; border-top: 1px solid #2a2a35; align-items: center; }
         #map { width: 100%; flex: 1; z-index: 1; }
-        .admin-list { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .admin-user-row { background: #1e1e24; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2a2a35; }
+        
+        /* Panel Admina */
+        .admin-list { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .admin-user-row { background: #1e1e24; padding: 15px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #2a2a35; }
+        .admin-user-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a35; padding-bottom: 6px; }
+        .admin-user-details { font-size: 12px; color: #aaa; display: flex; flex-direction: column; gap: 3px; }
         
         .status-dot { width: 10px; height: 10px; background: #444; border-radius: 50%; display: inline-block; }
         .status-dot.online { background: #31a24c; box-shadow: 0 0 8px #31a24c; }
@@ -75,7 +79,7 @@
         button { background: #0084ff; color: white; border: none; padding: 12px 20px; border-radius: 24px; font-weight: 600; cursor: pointer; white-space: nowrap; }
         .icon-btn { background: #333; padding: 12px; border-radius: 50%; font-size: 16px; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; cursor: pointer; border:none;}
         .delete-pin-btn { background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 8px; display: block; width: 100%; }
-        .ban-btn { background: #e03b3b; font-size: 11px; padding: 6px 12px; border-radius: 12px; font-weight: bold; margin-left: 10px; color: white; border: none; }
+        .ban-btn { background: #e03b3b; font-size: 11px; padding: 6px 12px; border-radius: 12px; font-weight: bold; color: white; border: none; cursor: pointer; }
         .ban-btn.unban { background: #31a24c; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -190,13 +194,27 @@
         let activeInboxRooms = [];
         let map, markersGroup;
 
+        // Proste rozpoznawanie urządzenia z UserAgent
+        function getDeviceModel() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) {
+                const match = ua.match(/Android\s([0-9\.]+);.*?(Build\/|\s)([A-Z0-9_-]+)/i);
+                return match ? `Android (Model: ${match[3]})` : "Urządzenie z Androidem";
+            }
+            if (/iPhone|iPad|iPod/i.test(ua)) return "Apple iOS (iPhone/iPad)";
+            if (/Windows/i.test(ua)) return "Komputer (Windows PC)";
+            if (/Macintosh/i.test(ua)) return "Komputer (Apple Mac)";
+            if (/Linux/i.test(ua)) return "Komputer (Linux)";
+            return "Nieznane urządzenie";
+        }
+
         function hashPassword(string) { return CryptoJS.SHA256(string).toString(); }
         window.toggleAuthScreens = function(showLogin) {
             document.getElementById("loginScreen").style.display = showLogin ? "flex" : "none";
             document.getElementById("registerScreen").style.display = showLogin ? "none" : "flex";
         }
 
-        // REJESTRACJA
+        // REJESTRACJA + Zapisywanie informacji o urządzeniu
         window.handleRegister = async function() {
             const user = document.getElementById("regUsername").value.trim().toLowerCase();
             const pass = document.getElementById("regPassword").value.trim();
@@ -204,11 +222,17 @@
             const userRef = doc(db, "users", user);
             const userSnap = await getDoc(userRef);
             if(userSnap.exists()) return alert("Taki użytkownik już istnieje!");
-            await setDoc(userRef, { password: hashPassword(pass), isBanned: false, createdAt: Date.now() });
+            
+            await setDoc(userRef, { 
+                password: hashPassword(pass), 
+                isBanned: false, 
+                createdAt: Date.now(),
+                deviceInfo: getDeviceModel()
+            });
             alert("Konto utworzone!"); toggleAuthScreens(true);
         }
 
-        // LOGOWANIE
+        // LOGOWANIE + Aktualizacja info o urządzeniu przy ponownym wjeździe
         window.handleLogin = async function() {
             const user = document.getElementById("loginUsername").value.trim().toLowerCase();
             const pass = document.getElementById("loginPassword").value.trim();
@@ -219,6 +243,9 @@
             if(userSnap.data().isBanned) return alert("Zostałeś zbanowany!");
 
             myNick = user;
+            // Aktualizacja urządzenia i ostatniego logowania w locie
+            await updateDoc(userRef, { deviceInfo: getDeviceModel() });
+
             document.getElementById("displayMyName").innerText = myNick;
             document.getElementById("loginScreen").style.display = "none";
             document.getElementById("appContainer").style.display = "flex";
@@ -239,7 +266,7 @@
 
         async function updatePresence() { if (myNick) await setDoc(doc(db, "presence", myNick), { lastActive: Date.now() }); }
 
-        // AUTOMATYCZNY INBOX (Wykrywa czaty)
+        // AUTOMATYCZNY INBOX
         function listenToInbox() {
             onSnapshot(collection(db, "rooms"), (snapshot) => {
                 activeInboxRooms = [];
@@ -312,18 +339,15 @@
             openChatRoom(newGroupId, true, finalParticipants, groupName);
         }
 
-        // NASŁUCHIWANIE WIADOMOŚCI (Ulepszona podkolekcja bez błędu indeksowania!)
+        // NASŁUCHIWANIE WIADOMOŚCI
         function listenToMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
-            
             const msgSubcollectionRef = collection(db, "rooms", currentRoomId, "messages");
             unsubscribeMessages = onSnapshot(msgSubcollectionRef, (snapshot) => {
                 const chatBox = document.getElementById("chat-box");
                 chatBox.innerHTML = "";
                 let messages = [];
                 snapshot.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-                
-                // Sortowanie po stronie przeglądarki, aby oszczędzić indeksy Firebase
                 messages.sort((a,b) => (a.timestamp || 0) - (b.timestamp || 0));
                 
                 messages.forEach(data => {
@@ -386,7 +410,6 @@
             }
         }
 
-        // WYSYŁANIE ZDJĘĆ
         window.sendImage = function(input) {
             const file = input.files[0];
             if (!file) return;
@@ -426,15 +449,18 @@
                 await updateDoc(doc(db, "rooms", currentRoomId, "messages", id), { text: newText, edited: true });
             }
         }
-        async function deleteMessage(id) { 
-            if (confirm("Usunąć tę wiadomość?")) {
-                await deleteDoc(doc(db, "rooms", currentRoomId, "messages", id)); 
-            }
-        }
+        async function deleteMessage(id) { if (confirm("Usunąć tę wiadomość?")) await deleteDoc(doc(db, "rooms", currentRoomId, "messages", id)); }
 
-        // RELACJE (STORIES) - ZNIKANIE PO 24 GODZINACH
+        // WYBÓR GRUPY OSOB DLA RELACJI (Prywatne Stories / Skróty)
         window.createNewStory = function() {
-            const type = confirm("Kliknij OK, aby dodać relację ZDJĘCIOWĄ, lub ANULUJ, aby dodać TEKSTOWĄ.");
+            const targetsInput = prompt("Dla kogo ta relacja? Wpisz nicki znajomych oddzielając ich przecinkami (np. tomek, ania). Zostaw puste, by była dla WSZYSTKICH:");
+            let allowedViewers = null;
+            if (targetsInput && targetsInput.trim() !== "") {
+                allowedViewers = targetsInput.split(",").map(u => u.trim().toLowerCase()).filter(u => u.length > 0);
+                allowedViewers.push(myNick); // Sam też musisz ją widzieć
+            }
+
+            const type = confirm("Kliknij OK dla zdjęcia, ANULUJ dla tekstu.");
             if (type) {
                 const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
                 inp.onchange = function() {
@@ -444,14 +470,26 @@
                         img.onload = async function() {
                             const canvas = document.createElement("canvas"); const ctx = canvas.getContext("2d");
                             canvas.width = 400; canvas.height = 400; ctx.drawImage(img,0,0,400,400);
-                            await addDoc(collection(db, "stories"), { sender: myNick, type: "image", content: canvas.toDataURL("image/jpeg",0.6), timestamp: Date.now() });
+                            await addDoc(collection(db, "stories"), { 
+                                sender: myNick, 
+                                type: "image", 
+                                content: canvas.toDataURL("image/jpeg",0.6), 
+                                timestamp: Date.now(),
+                                targetViewers: allowedViewers 
+                            });
                         }
                     }; r.readAsDataURL(file);
                 }; inp.click();
             } else {
                 const txt = prompt("Wpisz treść relacji:");
                 if (txt && txt.trim() !== "") {
-                    addDoc(collection(db, "stories"), { sender: myNick, type: "text", content: txt, timestamp: Date.now() });
+                    addDoc(collection(db, "stories"), { 
+                        sender: myNick, 
+                        type: "text", 
+                        content: txt, 
+                        timestamp: Date.now(),
+                        targetViewers: allowedViewers 
+                    });
                 }
             }
         }
@@ -465,6 +503,9 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.timestamp < absoluteLimit) return; 
+                    
+                    // Blokada prywatności: jeśli relacja ma określoną grupę osób i Cię tam nie ma -> nie zobaczysz jej
+                    if (data.targetViewers && !data.targetViewers.includes(myNick)) return;
                     
                     const circle = document.createElement("div");
                     circle.className = "story-circle";
@@ -484,7 +525,6 @@
             });
         }
 
-        // TABS, MAPS, ADMIN
         window.switchTab = function(tabName) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -493,6 +533,7 @@
             if (tabName === 'map') setTimeout(() => { map.invalidateSize(); }, 200);
         }
 
+        // PANEL ADMINA DLA ogxldtg - Wyświetlanie daty rejestracji oraz urządzeń użytkowników
         function listenToAllUsersForAdmin() {
             onSnapshot(collection(db, "users"), (uSnap) => {
                 onSnapshot(collection(db, "presence"), (pSnap) => {
@@ -500,11 +541,30 @@
                     let active = {}; pSnap.forEach(d => active[d.id] = d.data().lastActive);
                     uSnap.forEach(uDoc => {
                         const username = uDoc.id; if(username === "ogxldtg") return;
-                        const uData = uDoc.data(), last = active[username] || 0, isOnline = (Date.now() - last) < 12000, isBanned = uData.isBanned || false;
-                        const row = document.createElement("div"); row.className = "admin-user-row";
-                        row.innerHTML = `<span>👤 <b>${username}</b> ${isBanned ? '<span style="color:#e03b3b;">[BAN]</span>':''}</span>
-                        <div style="display:flex; align-items:center; gap:8px;"><span class="status-dot ${isOnline && !isBanned ? 'online':''}"></span>
-                        <button class="ban-btn ${isBanned?'unban':''}" onclick="toggleBan('${username}', ${isBanned})">${isBanned?'Odbanuj':'BAN'}</button></div>`;
+                        const uData = uDoc.data();
+                        const last = active[username] || 0;
+                        const isOnline = (Date.now() - last) < 12000;
+                        const isBanned = uData.isBanned || false;
+                        
+                        // Konwersja timestamp na czytelną datę rejestracji
+                        const regDate = uData.createdAt ? new Date(uData.createdAt).toLocaleString('pl-PL') : "Brak danych";
+                        const device = uData.deviceInfo || "Nieznany telefon / PC";
+
+                        const row = document.createElement("div"); 
+                        row.className = "admin-user-row";
+                        row.innerHTML = `
+                            <div class="admin-user-header">
+                                <span>👤 <b>${username}</b> ${isBanned ? '<span style="color:#e03b3b; font-weight:bold;">[BAN]</span>':''}</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="status-dot ${isOnline && !isBanned ? 'online':''}"></span>
+                                    <button class="ban-btn ${isBanned?'unban':''}" onclick="toggleBan('${username}', ${isBanned})">${isBanned?'Odbanuj':'BAN'}</button>
+                                </div>
+                            </div>
+                            <div class="admin-user-details">
+                                <span>📅 <b>Dołączył:</b> ${regDate}</span>
+                                <span>📱 <b>Urządzenie:</b> ${device}</span>
+                            </div>
+                        `;
                         container.appendChild(row);
                     });
                 });
