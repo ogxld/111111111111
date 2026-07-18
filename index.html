@@ -3,137 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapApp - Ghost Edition</title>
+    <title>SnapApp - Ghost Edition v2</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --bg-main: #0a0a0c;
-            --bg-surface: #121216;
-            --bg-field: #1c1c24;
+            --bg-main: #060608;
+            --bg-surface: #0e0e12;
+            --bg-field: #16161f;
             --snap-yellow: #FFFC00;
-            --snap-blue: #00b4ff;
-            --snap-purple: #a445ff;
-            --text-main: #ffffff;
-            --text-muted: #8e8e93;
-            --border: rgba(255, 255, 255, 0.06);
+            --snap-blue: #00f0ff;
+            --snap-purple: #bf55ec;
+            --text-main: #f5f5f7;
+            --text-muted: #6e6e73;
+            --border: rgba(255, 255, 255, 0.08);
+            --gradient-accent: linear-gradient(135deg, #FFFC00 0%, #ff007f 100%);
         }
 
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; justify-content: center; overflow: hidden; }
         
         /* Ekran logowania/rejestracji */
-        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 20px; background: radial-gradient(circle at top right, #1f1235 0%, var(--bg-main) 100%); position: fixed; z-index: 10000; }
-        .auth-box { background: var(--bg-surface); border: 1px solid var(--border); padding: 40px 30px; border-radius: 32px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .auth-box h2 { font-size: 32px; font-weight: 800; margin-bottom: 24px; background: linear-gradient(45deg, var(--snap-yellow), #ff5e00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .auth-links { margin-top: 20px; font-size: 14px; color: var(--text-muted); cursor: pointer; text-decoration: underline; transition: color 0.2s; }
-        .auth-links:hover { color: var(--text-main); }
+        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 20px; background: radial-gradient(circle at 80% 20%, #1a0b2e 0%, var(--bg-main) 100%); position: fixed; z-index: 10000; }
+        .auth-box { background: rgba(14, 14, 18, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 40px 30px; border-radius: 28px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+        .auth-box h2 { font-size: 36px; font-weight: 900; margin-bottom: 28px; background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
+        .auth-links { margin-top: 22px; font-size: 13px; color: var(--text-muted); cursor: pointer; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        .auth-links:hover { color: var(--snap-yellow); }
         
         /* Kontener główny aplikacji */
-        .app-container { display: none; flex-direction: column; height: 100vh; width: 100%; max-width: 480px; background: var(--bg-main); border-left: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; }
+        .app-container { display: none; flex-direction: column; height: 100vh; width: 100%; max-width: 460px; background: var(--bg-main); border-left: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; }
         
         /* Nagłówek */
-        .header { background: var(--bg-surface); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+        .header { background: rgba(14, 14, 18, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 10; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .profile-badge { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 6px; }
-        .profile-badge b { color: var(--snap-blue); }
+        .profile-badge { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.3px; }
+        .profile-badge b { color: var(--snap-yellow); background: rgba(255, 252, 0, 0.1); padding: 2px 8px; border-radius: 8px; }
         
         /* Wyszukiwarka */
-        .search-box { display: flex; gap: 8px; background: var(--bg-field); padding: 4px; border-radius: 20px; border: 1px solid var(--border); }
-        .search-box input { background: transparent; border: none; padding: 8px 16px; color: white; flex: 1; outline: none; font-size: 14px; }
-        .search-box button { background: var(--snap-blue); color: black; font-weight: 700; border-radius: 16px; padding: 6px 16px; border: none; cursor: pointer; font-size: 13px; }
+        .search-box { display: flex; gap: 8px; background: var(--bg-field); padding: 5px; border-radius: 14px; border: 1px solid var(--border); }
+        .search-box input { background: transparent; border: none; padding: 10px 14px; color: white; flex: 1; outline: none; font-size: 14px; }
+        .search-box button { background: var(--text-main); color: black; font-weight: 700; border-radius: 10px; padding: 0 18px; border: none; cursor: pointer; font-size: 13px; transition: opacity 0.2s; }
+        .search-box button:hover { opacity: 0.9; }
 
+        /* Sekcje tytułowe */
+        .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.5px; padding: 16px 20px 6px 20px; }
+        
         /* Relacje i Skróty */
-        .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; padding: 12px 20px 4px 20px; }
-        .stories-container { display: flex; gap: 14px; padding: 10px 20px 16px 20px; overflow-x: auto; align-items: center; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
+        .stories-container { display: flex; gap: 14px; padding: 8px 20px 16px 20px; overflow-x: auto; align-items: center; background: var(--bg-main); }
         .stories-container::-webkit-scrollbar { display: none; }
         
-        .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-align: center; width: 64px; shrink: 0; }
-        .story-circle { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--snap-yellow); padding: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-main); transition: transform 0.2s; }
-        .story-circle:active { transform: scale(0.92); }
-        .story-circle.add-story { border: 2px dashed #444; color: var(--snap-yellow); font-size: 24px; font-weight: 300; background: var(--bg-field); }
-        .story-circle.add-shortcut { border: 2px dashed #444; color: var(--snap-purple); font-size: 20px; background: var(--bg-field); }
-        .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: white; text-transform: uppercase; }
+        .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; color: #fff; text-align: center; width: 62px; shrink: 0; }
+        .story-circle { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--snap-yellow); padding: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-main); transition: all 0.2s ease; }
+        .story-circle:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 252, 0, 0.2); }
+        .story-circle.add-story { border: 2px dashed #3a3a4a; color: var(--snap-yellow); font-size: 22px; background: var(--bg-surface); }
+        .story-circle.add-shortcut { border: 2px dashed #3a3a4a; color: var(--snap-purple); font-size: 18px; background: var(--bg-surface); }
+        .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #2c1654 0%, #004f7c 100%); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: white; text-transform: uppercase; }
 
         /* Lista Rozmów */
-        .recent-chats { padding: 12px 20px; display: flex; gap: 10px; overflow-x: auto; background: var(--bg-main); min-height: 55px; }
+        .recent-chats { padding: 4px 20px 12px 20px; display: flex; gap: 8px; overflow-x: auto; min-height: 50px; }
         .recent-chats::-webkit-scrollbar { display: none; }
-        .chat-chip { background: var(--bg-surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 24px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #d1d1d6; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
-        .chat-chip.active { background: var(--snap-blue); color: #000; font-weight: 700; border-color: transparent; box-shadow: 0 4px 12px rgba(0,180,255,0.3); }
+        .chat-chip { background: var(--bg-surface); border: 1px solid var(--border); padding: 10px 18px; border-radius: 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #e5e5ea; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .chat-chip:hover { background: var(--bg-field); }
+        .chat-chip.active { background: var(--text-main); color: black; font-weight: 700; border-color: transparent; }
 
         /* Widok Czatu */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: linear-gradient(to bottom, var(--bg-main), #0f0f13); }
-        .msg-wrapper { display: flex; flex-direction: column; max-width: 78%; width: fit-content; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #060608; border-top: 1px solid var(--border); }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; width: fit-content; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.them { align-self: flex-start; align-items: flex-start; }
         
-        .msg { padding: 12px 18px; border-radius: 22px; font-size: 15px; position: relative; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .msg.me { background: var(--snap-blue); color: black; border-bottom-right-radius: 4px; }
-        .msg.them { background: var(--bg-surface); color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+        .msg { padding: 12px 18px; border-radius: 18px; font-size: 15px; position: relative; line-height: 1.45; }
+        .msg.me { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-bottom-right-radius: 4px; }
+        .msg.them { background: var(--bg-field); color: var(--text-main); border: 1px solid rgba(255,255,255,0.03); border-bottom-left-radius: 4px; }
         
-        /* Ochrona przed podglądaczami - efekt rozmycia */
-        .ghost-blur { filter: blur(4px); transition: filter 0.2s; user-select: none; -webkit-user-select: none; cursor: pointer; }
+        /* Blur dla wiadomości */
+        .ghost-blur { filter: blur(5px); transition: filter 0.15s ease; user-select: none; -webkit-user-select: none; cursor: pointer; }
         .ghost-blur:active { filter: blur(0px); }
 
-        /* Panel dolnego wprowadzania wiadomości */
-        .input-area { padding: 16px; background: var(--bg-surface); display: flex; gap: 12px; border-top: 1px solid var(--border); align-items: center; }
-        .input-wrapper { flex: 1; display: flex; align-items: center; background: var(--bg-field); border-radius: 24px; padding-right: 6px; border: 1px solid var(--border); }
-        .input-wrapper input { background: transparent; border: none; color: white; padding: 14px 20px; font-size: 15px; flex: 1; outline: none; }
-        .icon-btn { background: var(--bg-field); border: 1px solid var(--border); color: white; width: 48px; height: 48px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; shrink: 0; }
-        .send-btn { background: var(--snap-yellow); color: black; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; cursor: pointer; }
+        /* Panel wprowadzania wiadomości */
+        .input-area { padding: 16px 20px; background: var(--bg-surface); display: flex; gap: 10px; border-top: 1px solid var(--border); align-items: center; }
+        .input-wrapper { flex: 1; display: flex; align-items: center; background: var(--bg-field); border-radius: 14px; padding-right: 6px; border: 1px solid var(--border); }
+        .input-wrapper input { background: transparent; border: none; color: white; padding: 12px 16px; font-size: 15px; flex: 1; outline: none; }
+        .icon-btn { background: var(--bg-field); border: 1px solid var(--border); color: white; width: 44px; height: 44px; border-radius: 12px; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; shrink: 0; transition: background 0.2s; }
+        .icon-btn:hover { background: rgba(255,255,255,0.05); }
+        .send-btn { background: var(--snap-yellow); color: black; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; }
 
-        /* Paski nawigacyjne */
-        .tab-bar { display: flex; background: var(--bg-surface); border-top: 1px solid var(--border); min-height: 65px; }
-        .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        /* Paski nawigacyjne dolne */
+        .tab-bar { display: flex; background: var(--bg-surface); border-top: 1px solid var(--border); min-height: 68px; padding-bottom: env(safe-area-inset-bottom); }
+        .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: color 0.2s; }
         .tab-btn.active { color: var(--snap-yellow); }
         .panel { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--bg-main); }
         .panel.active { display: flex; }
-        #map { width: 100%; flex: 1; }
+        #map { width: 100%; flex: 1; background: #060608; }
 
         /* Modal relacji */
-        .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .story-modal img { max-width: 100%; max-height: 80vh; border-radius: 20px; }
-        .story-modal .story-text-content { background: var(--bg-surface); padding: 40px; border-radius: 24px; width: 85%; max-width: 340px; text-align: center; font-size: 22px; font-weight: 700; }
-        .story-top-info { position: absolute; top: 30px; left: 20px; right: 20px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; z-index: 100000; }
-        .delete-story-btn { background: #ff3b30; color: white; border: none; padding: 8px 14px; border-radius: 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(4,4,6,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .story-modal .story-text-content { background: var(--bg-surface); border: 1px solid var(--border); padding: 50px 30px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .story-top-info { position: absolute; top: 30px; left: 24px; right: 24px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; z-index: 100000; }
+        .delete-story-btn { background: rgba(255, 59, 48, 0.15); color: #ff453a; border: 1px solid rgba(255, 59, 48, 0.3); padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .delete-story-btn:hover { background: #ff3b30; color: white; }
 
-        input[type="text"], input[type="password"] { background: var(--bg-field); border: 1px solid var(--border); color: white; padding: 14px 20px; border-radius: 20px; font-size: 15px; outline: none; }
+        input[type="text"], input[type="password"] { background: var(--bg-field); border: 1px solid var(--border); color: white; padding: 12px 16px; border-radius: 14px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+        input[type="text"]:focus, input[type="password"]:focus { border-color: rgba(255,255,255,0.2); }
     </style>
     
-    <!-- Biblioteki zewnętrzne -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
-    <!-- LOGOWANIE -->
+    <!-- EKRAN LOGOWANIA -->
     <div class="auth-screen" id="loginScreen">
         <div class="auth-box">
             <h2>SnapApp 👻</h2>
-            <input type="text" id="loginUsername" placeholder="Nazwa użytkownika..." style="width:100%; margin-bottom:12px;">
-            <input type="password" id="loginPassword" placeholder="Hasło..." style="width:100%; margin-bottom:16px;">
-            <button onclick="window.handleLogin()" style="width: 100%; background: var(--snap-yellow); color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zaloguj się</button>
-            <div class="auth-links" onclick="window.toggleAuthScreens(false)">Stwórz nowe konto</div>
+            <input type="text" id="loginUsername" placeholder="Nazwa użytkownika" style="width:100%; margin-bottom:12px;">
+            <input type="password" id="loginPassword" placeholder="Hasło" style="width:100%; margin-bottom:18px;">
+            <button onclick="window.handleLogin()" style="width: 100%; background: var(--snap-yellow); color: black; font-weight:800; padding:14px; border-radius:14px; border:none; cursor:pointer; font-size:15px;">Zaloguj się</button>
+            <div class="auth-links" onclick="window.toggleAuthScreens(false)">Nie masz konta? Zarejestruj się</div>
         </div>
     </div>
 
-    <!-- REJESTRACJA -->
+    <!-- EKRAN REJESTRACJI -->
     <div class="auth-screen" id="registerScreen" style="display: none;">
         <div class="auth-box">
-            <h2>Dołącz teraz ✨</h2>
-            <input type="text" id="regUsername" placeholder="Wybierz nick..." style="width:100%; margin-bottom:12px;">
-            <input type="password" id="regPassword" placeholder="Wymyśl silne hasło..." style="width:100%; margin-bottom:16px;">
-            <button onclick="window.handleRegister()" style="width: 100%; background: white; color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zarejestruj się</button>
-            <div class="auth-links" onclick="window.toggleAuthScreens(true)">Masz już konto? Zaloguj</div>
+            <h2>Utwórz konto ✨</h2>
+            <input type="text" id="regUsername" placeholder="Twój unikalny nick" style="width:100%; margin-bottom:12px;">
+            <input type="password" id="regPassword" placeholder="Hasło profilu" style="width:100%; margin-bottom:18px;">
+            <button onclick="window.handleRegister()" style="width: 100%; background: white; color: black; font-weight:800; padding:14px; border-radius:14px; border:none; cursor:pointer; font-size:15px;">Zarejestruj się</button>
+            <div class="auth-links" onclick="window.toggleAuthScreens(true)">Masz już profil? Zaloguj się</div>
         </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
+    <!-- KONTENER APLIKACJI -->
     <div class="app-container" id="appContainer">
         <div id="panel-chat" class="panel active">
             <div class="header">
                 <div class="header-top">
-                    <div class="profile-badge">👻 <span>Profil: <b id="displayMyName"></b></span></div>
-                    <button onclick="location.reload()" style="padding: 6px 12px; font-size: 12px; background: var(--bg-field); border: 1px solid var(--border); color:white; border-radius:12px; cursor:pointer;">Wyloguj</button>
+                    <div class="profile-badge">👻 <span id="profileNameWrapper">Profil: <b id="displayMyName">Ładowanie...</b></span></div>
+                    <button onclick="location.reload()" style="padding: 8px 14px; font-size: 12px; font-weight:700; background: var(--bg-field); border: 1px solid var(--border); color:white; border-radius:10px; cursor:pointer;">Wyloguj</button>
                 </div>
                 <div class="search-box">
                     <input type="text" id="searchUser" placeholder="Szukaj znajomego po nicku...">
@@ -141,37 +147,36 @@
                 </div>
             </div>
 
-            <!-- RELACJE I SKRÓTY -->
             <div class="section-title">Relacje i Skróty</div>
             <div class="stories-container" id="storiesContainer">
                 <div class="story-wrapper">
                     <div class="story-circle add-story" onclick="window.createNewStory()">+</div>
-                    <span>Dodaj</span>
+                    <span style="color: var(--text-muted)">Dodaj</span>
                 </div>
                 <div class="story-wrapper">
                     <div class="story-circle add-shortcut" onclick="window.createNewShortcut()">⚙️</div>
-                    <span>Skrót</span>
+                    <span style="color: var(--text-muted)">Skrót</span>
                 </div>
             </div>
 
-            <div class="section-title">Rozmowy</div>
+            <div class="section-title">Aktywne rozmowy</div>
             <div class="recent-chats" id="recentChats"></div>
 
-            <div style="background: var(--bg-surface); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);" id="chatSubHeader">
-                <span id="currentChatTitle" style="font-weight:700; color:#fff; font-size:14px;">Wybierz czat</span>
+            <div style="background: var(--bg-surface); padding: 12px 20px; border-bottom: 1px solid var(--border);" id="chatSubHeader">
+                <span id="currentChatTitle" style="font-weight:800; color:#fff; font-size:14px; letter-spacing: -0.2px;">Wybierz czat z listy powyżej</span>
             </div>
 
             <!-- OKNO CZATU -->
             <div id="chat-box">
-                <div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size:14px;">Wybierz znajomego, aby rozpocząć bezpieczne snapowanie!</div>
+                <div style="text-align: center; color: var(--text-muted); margin-top: 60px; font-size:14px; padding: 0 40px; line-height: 1.5;">Wyszukaj profil lub kliknij aktywny dymek, aby bezpiecznie snapować w trybie Ghost.</div>
             </div>
 
-            <!-- INPUT AREA -->
+            <!-- OKNO INPUTU -->
             <div class="input-area" id="inputArea" style="display: none;">
                 <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 <button class="icon-btn" onclick="document.getElementById('imageInput').click()">📸</button>
                 <div class="input-wrapper">
-                    <input type="text" id="messageInput" placeholder="Wyślij znikającą wiadomość...">
+                    <input type="text" id="messageInput" placeholder="Napisz znikającą wiadomość...">
                     <button class="send-btn" onclick="window.sendMessage()">Wyślij</button>
                 </div>
             </div>
@@ -181,32 +186,32 @@
             <div id="map"></div>
         </div>
 
-        <!-- NAVBAR DOLNY -->
+        <!-- NAVBAR NA DOLE -->
         <div class="tab-bar">
-            <button class="tab-btn active" id="btn-tab-chat" onclick="window.switchTab('chat')">💬 <span>Czaty</span></button>
-            <button class="tab-btn" id="btn-tab-map" onclick="window.switchTab('map')">🗺️ <span>SnapMap</span></button>
+            <button class="tab-btn active" id="btn-tab-chat" onclick="window.switchTab('chat')">💬 <span style="margin-top:2px;">Czaty</span></button>
+            <button class="tab-btn" id="btn-tab-map" onclick="window.switchTab('map')">🗺️ <span style="margin-top:2px;">SnapMap</span></button>
         </div>
     </div>
 
-    <!-- MODAL RELACJI -->
+    <!-- MODAL DO RELACJI -->
     <div class="story-modal" id="storyModal">
         <div class="story-top-info">
             <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:20px;">👻</span> 
-                <span id="storyModalAuthor">Autor</span> 
-                <span id="storyViewsBadge" style="font-size:12px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:6px;"></span>
+                <span style="font-size:20px;">👀</span> 
+                <span id="storyModalAuthor" style="color:white; font-size:16px;">Autor</span> 
+                <span id="storyViewsBadge" style="font-size:11px; background:rgba(255,255,255,0.1); padding:3px 8px; border-radius:8px; font-weight: 700;"></span>
             </div>
             <div id="storyDeleteContainer"></div>
         </div>
         <div id="storyModalContent" style="width: 100%; display: flex; justify-content: center; align-items: center;" onclick="window.closeStoryModal()"></div>
     </div>
 
-    <!-- LOGIKA SILNIKA FIREBASE (TRYB GHOST) -->
+    <!-- LOGIKA SYSTEMOWA FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Twoja konfiguracja Firebase
+        // Konfiguracja Twojej bazy danych Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDQ3TtLG4Vem4LiElySooJnnJPQy-DRBSw",
             authDomain: "apka-32bf2.firebaseapp.com",
@@ -219,7 +224,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Stan aplikacji
+        // Zmienne stanowe
         let currentUser = null;
         let activeChatUser = null;
         let activeShortcut = null;
@@ -227,7 +232,7 @@
         let mapMarker = null;
         let activeListeners = [];
 
-        // --- INTERFEJS REJESTRACJI FUNKCJI GLOBALNYCH W OKNIE PRZEGLĄDARKI (NAPRAWA BŁĘDÓW) ---
+        // REJESTRACJA FUNKCJI DO OKNA GLOBALNEGO (NAPRAWA BŁĘDÓW UNDEFINED / BUTTON CLICK)
         window.toggleAuthScreens = function(showLogin) {
             document.getElementById('loginScreen').style.display = showLogin ? 'flex' : 'none';
             document.getElementById('registerScreen').style.display = showLogin ? 'none' : 'flex';
@@ -238,23 +243,27 @@
             const pass = document.getElementById('regPassword').value.trim();
             if(!user || !pass) return alert("Uzupełnij pola!");
 
-            const userRef = doc(db, "users", user);
-            const userSnap = await getDoc(userRef);
+            try {
+                const userRef = doc(db, "users", user);
+                const userSnap = await getDoc(userRef);
 
-            if(userSnap.exists()) {
-                return alert("Ten użytkownik już istnieje!");
+                if(userSnap.exists()) {
+                    return alert("Ten użytkownik już istnieje!");
+                }
+
+                const hashedPassword = CryptoJS.SHA256(pass).toString();
+                await setDoc(userRef, {
+                    username: user,
+                    password: hashedPassword,
+                    createdAt: Date.now(),
+                    shortcuts: []
+                });
+
+                alert("Konto utworzone! Możesz się zalogować.");
+                window.toggleAuthScreens(true);
+            } catch(e) {
+                alert("Błąd rejestracji: " + e.message);
             }
-
-            const hashedPassword = CryptoJS.SHA256(pass).toString();
-            await setDoc(userRef, {
-                username: user,
-                password: hashedPassword,
-                createdAt: Date.now(),
-                shortcuts: []
-            });
-
-            alert("Konto utworzone! Zaloguj się.");
-            window.toggleAuthScreens(true);
         };
 
         window.handleLogin = async function() {
@@ -262,39 +271,51 @@
             const pass = document.getElementById('loginPassword').value.trim();
             if(!user || !pass) return alert("Uzupełnij pola!");
 
-            const userRef = doc(db, "users", user);
-            const userSnap = await getDoc(userRef);
+            try {
+                const userRef = doc(db, "users", user);
+                const userSnap = await getDoc(userRef);
 
-            if(!userSnap.exists()) {
-                return alert("Nie ma takiego użytkownika!");
+                if(!userSnap.exists()) {
+                    return alert("Nie ma takiego użytkownika!");
+                }
+
+                const userData = userSnap.data();
+                const hashedPassword = CryptoJS.SHA256(pass).toString();
+                
+                if(userData.password !== hashedPassword) {
+                    return alert("Błędne hasło!");
+                }
+
+                // GWARANCJA ZAPISU DANYCH ZANIM APLIKACJA RUSZY
+                currentUser = userData;
+                
+                // Aktualizacja UI dopiero po pełnym przypisaniu zmiennej
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'flex';
+                document.getElementById('displayMyName').innerText = currentUser.username;
+
+                initApp();
+            } catch(e) {
+                alert("Błąd logowania: " + e.message);
             }
-
-            const hashedPassword = CryptoJS.SHA256(pass).toString();
-            if(userSnap.data().password !== hashedPassword) {
-                return alert("Błędne hasło!");
-            }
-
-            currentUser = userSnap.data();
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
-            document.getElementById('displayMyName').innerText = currentUser.username;
-
-            initApp();
         };
 
         function initApp() {
+            if(!currentUser || !currentUser.username) {
+                location.reload();
+                return;
+            }
             listenToGlobalStories();
             listenToActiveChatsList();
             initSnapMap();
             listenToPrivateNotifications();
             
-            // Obsługa przesyłania plików (zdjęć)
             document.getElementById('imageInput').addEventListener('change', function() {
                 sendImage(this);
             });
         }
 
-        // --- PODGLĄD CZATU (W LOCIE / GHOST MODE) ---
+        // --- OBSŁUGA STRUMIENIA WIADOMOŚCI-WIDMO ---
         function listenToMessages(chatWith) {
             activeListeners.forEach(unsub => unsub());
             activeListeners = [];
@@ -315,8 +336,6 @@
                         const msgId = change.doc.id;
 
                         renderGhostMessage(msgData, msgId);
-
-                        // Usuwamy natychmiast wiadomość z Firebase – brak śladów w bazie
                         await deleteDoc(doc(db, "ghost_messages", msgId));
                     }
                 });
@@ -332,7 +351,7 @@
 
             let contentHTML = '';
             if(data.type === 'image') {
-                contentHTML = `<img src="${data.content}" style="max-width:200px; border-radius:12px;" />`;
+                contentHTML = `<img src="${data.content}" style="max-width:200px; border-radius:12px; display:block;" />`;
             } else {
                 contentHTML = data.content;
             }
@@ -341,7 +360,7 @@
                 <div class="msg them ghost-blur" title="Przytrzymaj, aby zobaczyć">
                     ${contentHTML}
                 </div>
-                <span style="font-size:9px; color:var(--text-muted); margin-top:2px;">Znikająca wiadomość-widmo</span>
+                <span style="font-size:9px; color:var(--text-muted); margin-top:4px; margin-left:4px;">Znikający Snap</span>
             `;
 
             chatBox.appendChild(wrapper);
@@ -388,7 +407,7 @@
                 const chatBox = document.getElementById('chat-box');
                 const wrapper = document.createElement('div');
                 wrapper.className = "msg-wrapper me";
-                wrapper.innerHTML = `<div class="msg me" style="background:transparent; padding:0;"><img src="${base64Data}" style="max-width:200px; border-radius:12px;" /></div>`;
+                wrapper.innerHTML = `<div class="msg me" style="background:transparent; padding:0; border:none;"><img src="${base64Data}" style="max-width:200px; border-radius:14px; display:block;" /></div>`;
                 chatBox.appendChild(wrapper);
                 chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -403,12 +422,12 @@
             reader.readAsDataURL(file);
         }
 
-        // --- RELACJE (STORIES) - LIMIT 1 LUB 2 WYŚWIETLEŃ ---
+        // --- STORIES (RELACJE) ---
         window.createNewStory = async function() {
-            const content = prompt("Wpisz tekst Twojej relacji:");
+            const content = prompt("Treść Twojej nowej relacji:");
             if(!content) return;
 
-            const maxViews = prompt("Ile razy można to wyświetlić? Wpisz 1 lub 2:", "1");
+            const maxViews = prompt("Maksymalna ilość wyświetleń przez jednego użytkownika (1 lub 2):", "1");
             const allowedViews = (maxViews === "2") ? 2 : 1;
 
             await addDoc(collection(db, "stories"), {
@@ -421,7 +440,7 @@
                 createdAt: Date.now()
             });
 
-            alert("Relacja dodana!");
+            alert("Relacja dodana pomyślnie!");
         };
 
         function listenToGlobalStories() {
@@ -436,19 +455,17 @@
                     const story = docSnap.data();
                     const storyId = docSnap.id;
 
-                    // Ukryj, jeśli limit wyświetleń został już osiągnięty przez tego użytkownika
                     if(story.viewedBy.filter(u => u === currentUser.username).length >= story.maxViews) {
                         return; 
                     }
 
                     const wrapper = document.createElement('div');
                     wrapper.className = "story-wrapper";
-                    
                     wrapper.innerHTML = `
                         <div class="story-circle" id="circle-${storyId}">
                             <div class="story-text-avatar">${story.author.substring(0, 2)}</div>
                         </div>
-                        <span>${story.author}</span>
+                        <span style="font-size:11px; color:#fff; font-weight:500;">${story.author}</span>
                     `;
 
                     wrapper.querySelector('.story-circle').addEventListener('click', () => openStory(storyId, story));
@@ -464,13 +481,12 @@
             const badgeZone = document.getElementById('storyViewsBadge');
             const deleteContainer = document.getElementById('storyDeleteContainer');
 
-            authorZone.innerText = story.author;
+            authorZone.innerText = `@${story.author}`;
             badgeZone.innerText = `Limit: ${story.maxViews}x`;
             contentZone.innerHTML = `<div class="story-text-content">${story.content}</div>`;
 
-            // Opcja ręcznego usunięcia relacji dla twórcy
             if(story.author === currentUser.username) {
-                deleteContainer.innerHTML = `<button class="delete-story-btn">Usuń relację</button>`;
+                deleteContainer.innerHTML = `<button class="delete-story-btn">Usuń</button>`;
                 deleteContainer.querySelector('button').addEventListener('click', () => window.deleteStory(storyId));
             } else {
                 deleteContainer.innerHTML = '';
@@ -478,17 +494,15 @@
 
             modal.style.display = 'flex';
 
-            // Sprawdzanie limitu wyświetleń dla obcych relacji
             if(story.author !== currentUser.username) {
                 const updatedViewedBy = [...story.viewedBy, currentUser.username];
                 const timesThisUserWatched = updatedViewedBy.filter(u => u === currentUser.username).length + 1;
 
-                // Drugie obejrzenie -> Ciche powiadomienie-widmo dla nadawcy
                 if(story.maxViews === 2 && timesThisUserWatched === 2) {
                     await addDoc(collection(db, "ghost_notifications"), {
                         targetUser: story.author,
                         senderUser: currentUser.username,
-                        message: `Użytkownik ${currentUser.username} obejrzał Twoją relację po raz drugi!`,
+                        message: `Użytkownik ${currentUser.username} wyświetlił Twoją relację po raz drugi i ostatni!`,
                         timestamp: Date.now()
                     });
                 }
@@ -506,14 +520,13 @@
         };
 
         window.deleteStory = async function(storyId) {
-            if(confirm("Czy na pewno chcesz trwale usunąć tę relację?")) {
+            if(confirm("Czy chcesz całkowicie wymazać tę relację?")) {
                 await deleteDoc(doc(db, "stories", storyId));
                 window.closeStoryModal();
-                alert("Relacja została skasowana.");
             }
         };
 
-        // --- NASŁUCHIWANIE POWIADOMIEŃ (GHOST NOTIFICATIONS) ---
+        // --- POWIADOMIENIA ---
         function listenToPrivateNotifications() {
             const q = query(
                 collection(db, "ghost_notifications"), 
@@ -526,21 +539,19 @@
                         const notif = change.doc.data();
                         const notifId = change.doc.id;
 
-                        alert(`🔔 Powiadomienie: ${notif.message}`);
-                        
-                        // Po zrenderowaniu alertu palimy dokument w bazie danych
+                        alert(`🔔 SnapAlert: ${notif.message}`);
                         await deleteDoc(doc(db, "ghost_notifications", notifId));
                     }
                 });
             });
         }
 
-        // --- SKRÓTY I ROZMOWY ---
+        // --- SKRÓTY ---
         window.createNewShortcut = async function() {
-            const name = prompt("Podaj nazwę nowego skrótu grupy znajomych:");
+            const name = prompt("Podaj unikalną nazwę skrótu grupy:");
             if(!name) return;
             activeShortcut = name;
-            alert(`Ustawiono aktywny skrót: ${name}. Kliknij na znajomego, aby pisać w tym skrócie.`);
+            alert(`Skrót [${name}] został aktywowany.`);
         };
 
         function listenToActiveChatsList() {
@@ -569,13 +580,13 @@
 
         window.startChatWithSearchedUser = async function() {
             const target = document.getElementById('searchUser').value.trim().toLowerCase();
-            if(!target || target === currentUser.username) return alert("Niepoprawny użytkownik!");
+            if(!target || target === currentUser.username) return alert("Nieprawidłowy nick!");
 
             const userRef = doc(db, "users", target);
             const userSnap = await getDoc(userRef);
 
             if(!userSnap.exists()) {
-                return alert("Nie znaleziono takiego użytkownika.");
+                return alert("Taki użytkownik nie istnieje.");
             }
 
             selectChat(target);
@@ -583,7 +594,7 @@
 
         function selectChat(username, element = null) {
             activeChatUser = username;
-            document.getElementById('currentChatTitle').innerText = `Rozmowa z: @${username} ${activeShortcut ? `[Skrót: ${activeShortcut}]` : ''}`;
+            document.getElementById('currentChatTitle').innerText = `Rozmowa z: @${username} ${activeShortcut ? `[${activeShortcut}]` : ''}`;
             document.getElementById('inputArea').style.display = 'flex';
             
             document.querySelectorAll('.chat-chip').forEach(el => el.classList.remove('active'));
@@ -592,7 +603,7 @@
             listenToMessages(username);
         }
 
-        // --- NAWIGACJA ZAKŁADEK ---
+        // --- TAB SWITCHER ---
         window.switchTab = function(tab) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -601,16 +612,16 @@
             document.getElementById(`btn-tab-${tab}`).classList.add('active');
 
             if(tab === 'map') {
-                setTimeout(() => { map.invalidateSize(); }, 200);
+                setTimeout(() => { map.invalidateSize(); }, 250);
                 updateMyLocation();
             }
         };
 
         // --- MAPA (SNAPMAP) ---
         function initSnapMap() {
-            map = L.map('map').setView([52.237, 21.017], 13);
+            map = L.map('map', { zoomControl: false }).setView([52.237, 21.017], 13);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+                attribution: '&copy; CartoDB'
             }).addTo(map);
         }
 
@@ -624,7 +635,7 @@
                         mapMarker.setLatLng([lat, lng]);
                     } else {
                         mapMarker = L.marker([lat, lng]).addTo(map)
-                            .bindPopup(`<b>Ty (${currentUser.username})</b><br>Nadajesz w trybie Ghost.`).openPopup();
+                            .bindPopup(`<b>Ty (${currentUser.username})</b><br>Tryb maskowania aktywny.`).openPopup();
                     }
                     map.setView([lat, lng], 14);
                 });
