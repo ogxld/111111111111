@@ -2,113 +2,111 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapApp - Ghost Edition v2.3 (ogxldtg Root)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapApp - Ghost Mobile v3.0</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --bg-main: #060608;
-            --bg-surface: #0e0e12;
-            --bg-field: #16161f;
+            --bg-main: #050508;
+            --bg-surface: #0f0f15;
+            --bg-field: #161622;
             --snap-yellow: #FFFC00;
             --snap-blue: #00f0ff;
             --snap-purple: #bf55ec;
             --snap-red: #ff453a;
             --text-main: #f5f5f7;
-            --text-muted: #6e6e73;
-            --border: rgba(255, 255, 255, 0.08);
+            --text-muted: #86868b;
+            --border: rgba(255, 255, 255, 0.06);
             --gradient-accent: linear-gradient(135deg, #FFFC00 0%, #ff007f 100%);
         }
 
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; justify-content: center; overflow: hidden; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; color: var(--text-main); height: 100vh; display: flex; justify-content: center; overflow: hidden; }
         
-        /* Ekran logowania/rejestracji */
-        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 20px; background: radial-gradient(circle at 80% 20%, #1a0b2e 0%, var(--bg-main) 100%); position: fixed; z-index: 10000; }
-        .auth-box { background: rgba(14, 14, 18, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 40px 30px; border-radius: 28px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
-        .auth-box h2 { font-size: 36px; font-weight: 900; margin-bottom: 28px; background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
-        .auth-links { margin-top: 22px; font-size: 13px; color: var(--text-muted); cursor: pointer; text-decoration: none; font-weight: 500; transition: color 0.2s; }
-        .auth-links:hover { color: var(--snap-yellow); }
+        /* Ekran logowania/rejestracji - Mobile Optimized */
+        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 24px; background: radial-gradient(circle at 50% 30%, #170b2e 0%, var(--bg-main) 100%); position: fixed; z-index: 10000; }
+        .auth-box { background: rgba(15, 15, 21, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border); padding: 35px 24px; border-radius: 32px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .auth-box h2 { font-size: 38px; font-weight: 900; margin-bottom: 30px; background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
+        .auth-links { margin-top: 24px; font-size: 14px; color: var(--text-muted); cursor: pointer; font-weight: 600; }
         
-        /* Kontener główny aplikacji */
-        .app-container { display: none; flex-direction: column; height: 100vh; width: 100%; max-width: 460px; background: var(--bg-main); border-left: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; }
+        /* Kontener Główny - Idealny pod Telefon */
+        .app-container { display: none; flex-direction: column; height: 100vh; width: 100vw; max-width: 480px; background: var(--bg-main); position: relative; }
+        @media (min-width: 481px) {
+            .app-container { border-left: 1px solid var(--border); border-right: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+        }
         
-        /* Nagłówek */
-        .header { background: rgba(14, 14, 18, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 10; }
+        /* Nowoczesny Nagłówek */
+        .header { background: rgba(15, 15, 21, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 10; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .profile-badge { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.3px; }
-        .profile-badge b { color: var(--snap-yellow); background: rgba(255, 252, 0, 0.1); padding: 2px 8px; border-radius: 8px; }
+        .profile-badge { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.4px; }
+        .profile-badge b { color: var(--snap-yellow); background: rgba(255, 252, 0, 0.12); padding: 3px 10px; border-radius: 10px; font-size: 14px; }
         
-        /* Wyszukiwarka */
-        .search-box { display: flex; gap: 8px; background: var(--bg-field); padding: 5px; border-radius: 14px; border: 1px solid var(--border); }
-        .search-box input { background: transparent; border: none; padding: 10px 14px; color: white; flex: 1; outline: none; font-size: 14px; }
-        .search-box button { background: var(--text-main); color: black; font-weight: 700; border-radius: 10px; padding: 0 18px; border: none; cursor: pointer; font-size: 13px; transition: opacity 0.2s; }
-        .search-box button:hover { opacity: 0.9; }
+        /* Komfortowa wyszukiwarka */
+        .search-box { display: flex; gap: 8px; background: var(--bg-field); padding: 4px; border-radius: 16px; border: 1px solid var(--border); }
+        .search-box input { background: transparent; border: none; padding: 12px 14px; color: white; flex: 1; outline: none; font-size: 15px; }
+        .search-box button { background: var(--text-main); color: black; font-weight: 700; border-radius: 12px; padding: 0 20px; border: none; cursor: pointer; font-size: 14px; }
 
-        /* Sekcje tytułowe */
-        .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.5px; padding: 16px 20px 6px 20px; }
+        .section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.2px; padding: 16px 20px 8px 20px; }
         
-        /* Relacje i Skróty */
-        .stories-container { display: flex; gap: 14px; padding: 8px 20px 16px 20px; overflow-x: auto; align-items: center; background: var(--bg-main); }
+        /* Slider Relacji */
+        .stories-container { display: flex; gap: 16px; padding: 4px 20px 16px 20px; overflow-x: auto; align-items: center; }
         .stories-container::-webkit-scrollbar { display: none; }
-        
-        .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; color: #fff; text-align: center; width: 62px; shrink: 0; }
-        .story-circle { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--snap-yellow); padding: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-main); transition: all 0.2s ease; }
-        .story-circle:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 252, 0, 0.2); }
-        .story-circle.add-story { border: 2px dashed #3a3a4a; color: var(--snap-yellow); font-size: 22px; background: var(--bg-surface); }
-        .story-circle.add-shortcut { border: 2px dashed #3a3a4a; color: var(--snap-purple); font-size: 18px; background: var(--bg-surface); }
-        .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #2c1654 0%, #004f7c 100%); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: white; text-transform: uppercase; }
+        .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #fff; width: 66px; shrink: 0; }
+        .story-circle { width: 64px; height: 64px; border-radius: 50%; border: 2.5px solid var(--snap-yellow); padding: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-main); }
+        .story-circle.add-story { border: 2px dashed #44445c; color: var(--snap-yellow); font-size: 24px; background: var(--bg-surface); }
+        .story-circle.add-shortcut { border: 2px dashed #44445c; color: var(--snap-purple); font-size: 20px; background: var(--bg-surface); }
+        .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #361766 0%, #005687 100%); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* Lista Rozmów */
-        .recent-chats { padding: 4px 20px 12px 20px; display: flex; gap: 8px; overflow-x: auto; min-height: 50px; }
+        /* Komfortowe dymki czatów */
+        .recent-chats { padding: 4px 20px 14px 20px; display: flex; gap: 10px; overflow-x: auto; min-height: 54px; }
         .recent-chats::-webkit-scrollbar { display: none; }
-        .chat-chip { background: var(--bg-surface); border: 1px solid var(--border); padding: 10px 18px; border-radius: 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #e5e5ea; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
-        .chat-chip:hover { background: var(--bg-field); }
+        .chat-chip { background: var(--bg-surface); border: 1px solid var(--border); padding: 12px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #e5e5ea; display: flex; align-items: center; gap: 8px; }
         .chat-chip.active { background: var(--text-main); color: black; font-weight: 700; border-color: transparent; }
 
-        /* Widok Czatu */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #060608; border-top: 1px solid var(--border); }
-        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; width: fit-content; }
+        /* Widok wiadomości */
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: #040406; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 85%; width: fit-content; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.them { align-self: flex-start; align-items: flex-start; }
         
-        .msg { padding: 12px 18px; border-radius: 18px; font-size: 15px; position: relative; line-height: 1.45; }
+        .msg-container-inline { display: flex; align-items: center; gap: 8px; width: 100%; }
+        .msg { padding: 14px 18px; border-radius: 22px; font-size: 16px; line-height: 1.4; position: relative; word-break: break-word; }
         .msg.me { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-bottom-right-radius: 4px; }
-        .msg.them { background: var(--bg-field); color: var(--text-main); border: 1px solid rgba(255,255,255,0.03); border-bottom-left-radius: 4px; }
+        .msg.them { background: var(--bg-field); color: var(--text-main); border: 1px solid rgba(255,255,255,0.02); border-bottom-left-radius: 4px; }
         
-        /* Blur dla wiadomości */
-        .ghost-blur { filter: blur(5px); transition: filter 0.15s ease; user-select: none; -webkit-user-select: none; cursor: pointer; }
+        .ghost-blur { filter: blur(6px); transition: filter 0.15s ease; user-select: none; -webkit-user-select: none; cursor: pointer; }
         .ghost-blur:active { filter: blur(0px); }
 
-        /* Panel wprowadzania wiadomości */
-        .input-area { padding: 16px 20px; background: var(--bg-surface); display: flex; gap: 10px; border-top: 1px solid var(--border); align-items: center; }
-        .input-wrapper { flex: 1; display: flex; align-items: center; background: var(--bg-field); border-radius: 14px; padding-right: 6px; border: 1px solid var(--border); }
-        .input-wrapper input { background: transparent; border: none; color: white; padding: 12px 16px; font-size: 15px; flex: 1; outline: none; }
-        .icon-btn { background: var(--bg-field); border: 1px solid var(--border); color: white; width: 44px; height: 44px; border-radius: 12px; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; shrink: 0; transition: background 0.2s; }
-        .icon-btn:hover { background: rgba(255,255,255,0.05); }
-        .send-btn { background: var(--snap-yellow); color: black; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .msg-delete-icon { color: var(--snap-red); font-size: 14px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; background: rgba(255,69,58,0.1); border-radius: 50%; width: 28px; height: 28px; }
 
-        /* Paski nawigacyjne dolne */
-        .tab-bar { display: flex; background: var(--bg-surface); border-top: 1px solid var(--border); min-height: 68px; padding-bottom: env(safe-area-inset-bottom); }
-        .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: color 0.2s; }
+        /* Panel wprowadzania tekstu - Ultra wygodny pod kciuk */
+        .input-area { padding: 14px 16px cubic-bezier(0.1, 0.7, 0.1, 1); background: var(--bg-surface); display: flex; gap: 10px; border-top: 1px solid var(--border); align-items: center; padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+        .input-wrapper { flex: 1; display: flex; align-items: center; background: var(--bg-field); border-radius: 20px; padding-right: 6px; border: 1px solid var(--border); }
+        .input-wrapper input { background: transparent; border: none; color: white; padding: 14px 16px; font-size: 16px; flex: 1; outline: none; }
+        .icon-btn { background: var(--bg-field); border: 1px solid var(--border); color: white; width: 48px; height: 48px; border-radius: 18px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; shrink: 0; }
+        .send-btn { background: var(--snap-yellow); color: black; border: none; padding: 10px 18px; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 14px; }
+
+        /* Pasek dolny - Ergonomia iOS/Android */
+        .tab-bar { display: flex; background: rgba(15, 15, 21, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); min-height: 72px; padding-bottom: env(safe-area-inset-bottom); }
+        .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
         .tab-btn.active { color: var(--snap-yellow); }
+        
         .panel { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--bg-main); }
         .panel.active { display: flex; }
-        #map { width: 100%; flex: 1; background: #060608; }
+        #map { width: 100%; flex: 1; background: #050508; }
 
-        /* Widok Panelu Admina */
-        .admin-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin: 20px; }
-        .admin-btn { background: var(--snap-red); color: white; font-weight: 700; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; }
+        /* Panel Admina */
+        .admin-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 24px; padding: 22px; margin: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .admin-card h3 { font-size: 18px; font-weight: 800; color: #fff; }
+        .admin-btn { background: var(--snap-red); color: white; font-weight: 700; border: none; padding: 14px; border-radius: 14px; cursor: pointer; width: 100%; font-size: 14px; }
 
-        /* Modal relacji */
-        .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(4,4,6,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .story-modal .story-text-content { background: var(--bg-surface); border: 1px solid var(--border); padding: 50px 30px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .story-top-info { position: absolute; top: 30px; left: 24px; right: 24px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; z-index: 100000; }
-        .delete-story-btn { background: rgba(255, 59, 48, 0.15); color: #ff453a; border: 1px solid rgba(255, 59, 48, 0.3); padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-        .delete-story-btn:hover { background: #ff3b30; color: white; }
+        /* Modal Relacji */
+        .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3,3,5,0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .story-modal .story-text-content { background: var(--bg-surface); border: 1px solid var(--border); padding: 60px 24px; border-radius: 30px; width: 100%; max-width: 360px; text-align: center; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+        .story-top-info { position: absolute; top: 40px; left: 24px; right: 24px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; z-index: 100000; }
+        .delete-story-btn { background: rgba(255, 59, 48, 0.15); color: #ff453a; border: 1px solid rgba(255, 59, 48, 0.25); padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
-        input[type="text"], input[type="password"] { background: var(--bg-field); border: 1px solid var(--border); color: white; padding: 12px 16px; border-radius: 14px; font-size: 15px; outline: none; transition: border-color 0.2s; }
-        input[type="text"]:focus, input[type="password"]:focus { border-color: rgba(255,255,255,0.2); }
+        input[type="text"], input[type="password"] { background: var(--bg-field); border: 1px solid var(--border); color: white; padding: 14px 16px; border-radius: 16px; font-size: 15px; outline: none; }
     </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -116,25 +114,25 @@
 </head>
 <body>
 
-    <!-- EKRAN LOGOWANIA -->
+    <!-- LOGOWANIE -->
     <div class="auth-screen" id="loginScreen">
         <div class="auth-box">
             <h2>SnapApp 👻</h2>
             <input type="text" id="loginUsername" placeholder="Nazwa użytkownika" style="width:100%; margin-bottom:12px;">
-            <input type="password" id="loginPassword" placeholder="Hasło" style="width:100%; margin-bottom:18px;">
-            <button onclick="window.handleLogin()" style="width: 100%; background: var(--snap-yellow); color: black; font-weight:800; padding:14px; border-radius:14px; border:none; cursor:pointer; font-size:15px;">Zaloguj się</button>
-            <div class="auth-links" onclick="window.toggleAuthScreens(false)">Nie masz konta? Zarejestruj się</div>
+            <input type="password" id="loginPassword" placeholder="Hasło" style="width:100%; margin-bottom:20px;">
+            <button onclick="window.handleLogin()" style="width: 100%; background: var(--snap-yellow); color: black; font-weight:800; padding:15px; border-radius:16px; border:none; cursor:pointer; font-size:16px;">Zaloguj się</button>
+            <div class="auth-links" onclick="window.toggleAuthScreens(false)">Stwórz nowe konto</div>
         </div>
     </div>
 
-    <!-- EKRAN REJESTRACJI -->
+    <!-- REJESTRACJA -->
     <div class="auth-screen" id="registerScreen" style="display: none;">
         <div class="auth-box">
-            <h2>Utwórz konto ✨</h2>
-            <input type="text" id="regUsername" placeholder="Twój unikalny nick" style="width:100%; margin-bottom:12px;">
-            <input type="password" id="regPassword" placeholder="Hasło profilu" style="width:100%; margin-bottom:18px;">
-            <button onclick="window.handleRegister()" style="width: 100%; background: white; color: black; font-weight:800; padding:14px; border-radius:14px; border:none; cursor:pointer; font-size:15px;">Zarejestruj się</button>
-            <div class="auth-links" onclick="window.toggleAuthScreens(true)">Masz już profil? Zaloguj się</div>
+            <h2>Nowy Profil ✨</h2>
+            <input type="text" id="regUsername" placeholder="Wpisz swój nick" style="width:100%; margin-bottom:12px;">
+            <input type="password" id="regPassword" placeholder="Wpisz silne hasło" style="width:100%; margin-bottom:20px;">
+            <button onclick="window.handleRegister()" style="width: 100%; background: white; color: black; font-weight:800; padding:15px; border-radius:16px; border:none; cursor:pointer; font-size:16px;">Zarejestruj się</button>
+            <div class="auth-links" onclick="window.toggleAuthScreens(true)">Masz już konto? Logowanie</div>
         </div>
     </div>
 
@@ -144,8 +142,8 @@
         <div id="panel-chat" class="panel active">
             <div class="header">
                 <div class="header-top">
-                    <div class="profile-badge">👻 <span id="profileNameWrapper">Profil: <b id="displayMyName">Ładowanie...</b></span></div>
-                    <button onclick="location.reload()" style="padding: 8px 14px; font-size: 12px; font-weight:700; background: var(--bg-field); border: 1px solid var(--border); color:white; border-radius:10px; cursor:pointer;">Wyloguj</button>
+                    <div class="profile-badge">👻 <span id="profileNameWrapper"><b id="displayMyName">...</b></span></div>
+                    <button onclick="location.reload()" style="padding: 10px 16px; font-size: 13px; font-weight:700; background: var(--bg-field); border: 1px solid var(--border); color:white; border-radius:12px; cursor:pointer;">Wyloguj</button>
                 </div>
                 <div class="search-box">
                     <input type="text" id="searchUser" placeholder="Szukaj znajomego po nicku...">
@@ -168,19 +166,19 @@
             <div class="section-title">Aktywne rozmowy</div>
             <div class="recent-chats" id="recentChats"></div>
 
-            <div style="background: var(--bg-surface); padding: 12px 20px; border-bottom: 1px solid var(--border);" id="chatSubHeader">
-                <span id="currentChatTitle" style="font-weight:800; color:#fff; font-size:14px; letter-spacing: -0.2px;">Wybierz czat z listy powyżej</span>
+            <div style="background: var(--bg-surface); padding: 14px 20px; border-bottom: 1px solid var(--border);" id="chatSubHeader">
+                <span id="currentChatTitle" style="font-weight:800; color:#fff; font-size:15px;">Wybierz osobę z listy powyżej</span>
             </div>
 
             <div id="chat-box">
-                <div style="text-align: center; color: var(--text-muted); margin-top: 60px; font-size:14px; padding: 0 40px; line-height: 1.5;">Wyszukaj profil lub kliknij aktywny dymek, aby bezpiecznie snapować w trybie Ghost.</div>
+                <div style="text-align: center; color: var(--text-muted); margin-top: 60px; font-size:15px; padding: 0 30px; line-height: 1.6;">Wyszukaj znajomego lub wybierz dymek, aby zacząć pisać bezpieczne wiadomości widmo.</div>
             </div>
 
             <div class="input-area" id="inputArea" style="display: none;">
                 <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 <button class="icon-btn" onclick="document.getElementById('imageInput').click()">📸</button>
                 <div class="input-wrapper">
-                    <input type="text" id="messageInput" placeholder="Napisz znikającą wiadomość...">
+                    <input type="text" id="messageInput" placeholder="Napisz coś...">
                     <button class="send-btn" onclick="window.sendMessage()">Wyślij</button>
                 </div>
             </div>
@@ -194,17 +192,26 @@
         <!-- PANEL ADMINISTRATORA (DLA ogxldtg) -->
         <div id="panel-admin" class="panel">
             <div class="header">
-                <div class="profile-badge" style="padding: 10px 0;">👑 PANEL ADMINA SYSTEMU</div>
+                <div class="profile-badge" style="padding: 6px 0;">👑 SYSTEM ROOT INTERFACE</div>
             </div>
+            
+            <!-- NOWE: NADAWANIE UPRAWNIEŃ MODERATORA -->
             <div class="admin-card">
-                <h3>Status Root</h3>
-                <p style="color: var(--snap-blue); margin-top: 5px; font-size: 14px;">Zalogowano jako Główny Administrator: <b>ogxldtg</b>.</p>
+                <h3>Nadaj Uprawnienia MOD</h3>
+                <p style="font-size: 13px; color: var(--text-muted);">Użytkownik z rolą MOD uzyska prawo do natychmiastowego kasowania wiadomości i relacji każdego profilu w bazie.</p>
+                <input type="text" id="modTargetUser" placeholder="Nick użytkownika (np. janusz)">
+                <input type="password" id="modAdminPassword" placeholder="Kod autoryzacji Root (np. 2008)">
+                <button class="admin-btn" style="background: var(--snap-purple);" onclick="window.grantModeratorRights()">Autoryzuj i Nadaj MOD</button>
+            </div>
+
+            <div class="admin-card">
+                <h3>Zarządzanie Systemem</h3>
+                <p style="color: var(--snap-blue); font-size: 14px;">Zalogowano jako Główny Administrator: <b>ogxldtg</b>.</p>
                 <button class="admin-btn" onclick="alert('Baza danych została zoptymalizowana!')">Wyczyść Logi Systemowe</button>
-                <button class="admin-btn" style="background: var(--bg-field); color: white;" onclick="window.switchTab('chat')">Powrót do Czatu</button>
             </div>
         </div>
 
-        <!-- NAVBAR NA DOLE -->
+        <!-- NAVBAR NA DOLE (Kompaktowa pod kciuk) -->
         <div class="tab-bar">
             <button class="tab-btn active" id="btn-tab-chat" onclick="window.switchTab('chat')">💬 <span>Czaty</span></button>
             <button class="tab-btn" id="btn-tab-map" onclick="window.switchTab('map')">🗺️ <span>SnapMap</span></button>
@@ -212,23 +219,23 @@
         </div>
     </div>
 
-    <!-- MODAL DO RELACJI -->
+    <!-- MODAL RELACJI -->
     <div class="story-modal" id="storyModal">
         <div class="story-top-info">
             <div style="display:flex; align-items:center; gap:8px;">
                 <span style="font-size:20px;">👀</span> 
                 <span id="storyModalAuthor" style="color:white; font-size:16px;">Autor</span> 
-                <span id="storyViewsBadge" style="font-size:11px; background:rgba(255,255,255,0.1); padding:3px 8px; border-radius:8px; font-weight: 700;"></span>
+                <span id="storyViewsBadge" style="font-size:12px; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; font-weight: 700;"></span>
             </div>
             <div id="storyDeleteContainer"></div>
         </div>
         <div id="storyModalContent" style="width: 100%; display: flex; justify-content: center; align-items: center;" onclick="window.closeStoryModal()"></div>
     </div>
 
-    <!-- LOGIKA SYSTEMOWA FIREBASE -->
+    <!-- FIREBASE ENGINE v3.0 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDQ3TtLG4Vem4LiElySooJnnJPQy-DRBSw",
@@ -263,23 +270,19 @@
                 const userRef = doc(db, "users", user);
                 const userSnap = await getDoc(userRef);
 
-                if(userSnap.exists()) {
-                    return alert("Ten użytkownik już istnieje!");
-                }
+                if(userSnap.exists()) return alert("Ten użytkownik już istnieje!");
 
                 const hashedPassword = CryptoJS.SHA256(pass).toString();
                 await setDoc(userRef, {
                     username: user,
                     password: hashedPassword,
                     createdAt: Date.now(),
-                    shortcuts: []
+                    canDeleteEverything: false
                 });
 
-                alert("Konto utworzone! Możesz się zalogować.");
+                alert("Konto utworzone!");
                 window.toggleAuthScreens(true);
-            } catch(e) {
-                alert("Błąd rejestracji: " + e.message);
-            }
+            } catch(e) { alert("Błąd: " + e.message); }
         };
 
         window.handleLogin = async function() {
@@ -291,50 +294,64 @@
                 const userRef = doc(db, "users", user);
                 const userSnap = await getDoc(userRef);
 
-                if(!userSnap.exists()) {
-                    return alert("Nie ma takiego użytkownika!");
-                }
+                if(!userSnap.exists()) return alert("Brak użytkownika!");
 
                 const userData = userSnap.data();
-                const hashedPassword = CryptoJS.SHA256(pass).toString();
-                
-                if(userData.password !== hashedPassword) {
-                    return alert("Błędne hasło!");
-                }
+                if(userData.password !== CryptoJS.SHA256(pass).toString()) return alert("Błędne hasło!");
 
-                currentUser = {
-                    username: user,
-                    ...userData
-                };
+                currentUser = { username: user, ...userData };
                 
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'flex';
                 document.getElementById('displayMyName').innerText = currentUser.username;
 
-                // POPRAWKA LOGOWANIA ADMINA: Aktywacja panelu dla nicku ogxldtg
                 if(currentUser.username === 'ogxldtg') {
                     document.getElementById('btn-tab-admin').style.display = 'flex';
                 }
 
                 initApp();
-            } catch(e) {
-                alert("Błąd logowania: " + e.message);
-            }
+            } catch(e) { alert("Błąd logowania: " + e.message); }
+        };
+
+        // NOWE: Funkcja nadawania uprawnień MOD z hasłem 2008
+        window.grantModeratorRights = async function() {
+            const target = document.getElementById('modTargetUser').value.trim().toLowerCase();
+            const password = document.getElementById('modAdminPassword').value.trim();
+
+            if(!target || !password) return alert("Wypełnij dane!");
+            if(password !== "2008") return alert("BŁĘDNE HASŁO AKTYWACYJNE ADMINA!");
+
+            try {
+                const targetRef = doc(db, "users", target);
+                const targetSnap = await getDoc(targetRef);
+
+                if(!targetSnap.exists()) return alert("Nie znaleziono takiego użytkownika!");
+
+                await updateDoc(targetRef, { canDeleteEverything: true });
+                alert(`Pomyślnie nadano uprawnienia MOD dla @${target}. Może usuwać wszystko!`);
+                
+                document.getElementById('modTargetUser').value = '';
+                document.getElementById('modAdminPassword').value = '';
+            } catch(e) { alert("Błąd: " + e.message); }
         };
 
         function initApp() {
-            if(!currentUser || !currentUser.username) return;
-            
-            try { listenToGlobalStories(); } catch(e) { console.error(e); }
-            try { listenToActiveChatsList(); } catch(e) { console.error(e); }
-            try { initSnapMap(); } catch(e) { console.error(e); }
-            try { listenToPrivateNotifications(); } catch(e) { console.error(e); }
-            
-            document.getElementById('imageInput').addEventListener('change', function() {
-                sendImage(this);
+            // Nasłuchiwanie zmian na koncie zalogowanego usera, aby na bieżąco mieć jego uprawnienia
+            onSnapshot(doc(db, "users", currentUser.username), (snapshot) => {
+                if(snapshot.exists()) {
+                    currentUser.canDeleteEverything = snapshot.data().canDeleteEverything || false;
+                }
             });
+
+            try { listenToGlobalStories(); } catch(e) {}
+            try { listenToActiveChatsList(); } catch(e) {}
+            try { initSnapMap(); } catch(e) {}
+            try { listenToPrivateNotifications(); } catch(e) {}
+            
+            document.getElementById('imageInput').addEventListener('change', function() { sendImage(this); });
         }
 
+        // NAPRAWA: Zmiana kolekcji z 'ghost_messages' na 'messages' (zgodnie z bazą)
         function listenToMessages(chatWith) {
             activeListeners.forEach(unsub => unsub());
             activeListeners = [];
@@ -343,7 +360,7 @@
             chatBox.innerHTML = '';
 
             const q = query(
-                collection(db, "ghost_messages"),
+                collection(db, "messages"),
                 where("receiverId", "==", currentUser.username),
                 where("senderId", "==", chatWith)
             );
@@ -354,7 +371,9 @@
                         const msgData = change.doc.data();
                         const msgId = change.doc.id;
                         renderGhostMessage(msgData, msgId);
-                        try { await deleteDoc(doc(db, "ghost_messages", msgId)); } catch(e) {}
+                        
+                        // Automatyczne kasowanie z bazy danych po odebraniu (Tryb GHOST)
+                        try { await deleteDoc(doc(db, "messages", msgId)); } catch(e) {}
                     }
                 });
             });
@@ -366,22 +385,37 @@
             const wrapper = document.createElement('div');
             wrapper.className = "msg-wrapper them";
 
-            let contentHTML = '';
-            if(data.type === 'image') {
-                contentHTML = `<img src="${data.content}" style="max-width:200px; border-radius:12px; display:block;" />`;
-            } else {
-                contentHTML = data.content || '';
-            }
+            let contentHTML = data.type === 'image' 
+                ? `<img src="${data.content}" style="max-width:210px; border-radius:16px; display:block;" />`
+                : data.content || '';
+
+            // Sprawdzanie uprawnień do usuwania na żądanie
+            const isAuthorizedToDelete = (currentUser.username === 'ogxldtg' || currentUser.canDeleteEverything);
+            let deleteButtonHTML = isAuthorizedToDelete 
+                ? `<span class="msg-delete-icon" onclick="window.deleteSingleMessage('${id}', this)">🗑️</span>` 
+                : '';
 
             wrapper.innerHTML = `
-                <div class="msg them ghost-blur" title="Przytrzymaj, aby zobaczyć">
-                    ${contentHTML}
+                <div class="msg-container-inline">
+                    <div class="msg them ghost-blur" title="Przytrzymaj kciuk, aby odczytać">
+                        ${contentHTML}
+                    </div>
+                    ${deleteButtonHTML}
                 </div>
-                <span style="font-size:9px; color:var(--text-muted); margin-top:4px; margin-left:4px;">Znikający Snap</span>
+                <span style="font-size:10px; color:var(--text-muted); margin-top:4px; margin-left:4px;">Znikający Snap</span>
             `;
             chatBox.appendChild(wrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+
+        window.deleteSingleMessage = async function(msgId, element) {
+            if(confirm("Czy na pewno chcesz bezpowrotnie usunąć tę wiadomość ze struktury bazy danych?")) {
+                try {
+                    await deleteDoc(doc(db, "messages", msgId));
+                    element.closest('.msg-wrapper').remove();
+                } catch(e) { alert("Błąd usuwania: " + e.message); }
+            }
+        };
 
         window.sendMessage = async function() {
             const input = document.getElementById('messageInput');
@@ -395,7 +429,7 @@
             chatBox.appendChild(wrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            await addDoc(collection(db, "ghost_messages"), {
+            await addDoc(collection(db, "messages"), {
                 senderId: currentUser.username,
                 receiverId: activeChatUser,
                 content: content,
@@ -421,11 +455,11 @@
                 const chatBox = document.getElementById('chat-box');
                 const wrapper = document.createElement('div');
                 wrapper.className = "msg-wrapper me";
-                wrapper.innerHTML = `<div class="msg me" style="background:transparent; padding:0; border:none;"><img src="${base64Data}" style="max-width:200px; border-radius:14px; display:block;" /></div>`;
+                wrapper.innerHTML = `<div class="msg me" style="background:transparent; padding:0; border:none;"><img src="${base64Data}" style="max-width:210px; border-radius:16px; display:block;" /></div>`;
                 chatBox.appendChild(wrapper);
                 chatBox.scrollTop = chatBox.scrollHeight;
 
-                await addDoc(collection(db, "ghost_messages"), {
+                await addDoc(collection(db, "messages"), {
                     senderId: currentUser.username,
                     receiverId: activeChatUser,
                     content: base64Data,
@@ -437,9 +471,9 @@
         }
 
         window.createNewStory = async function() {
-            const content = prompt("Treść Twojej nowej relacji:");
+            const content = prompt("Treść Twojej relacji:");
             if(!content) return;
-            const maxViews = prompt("Maksymalna ilość wyświetleń (1 lub 2):", "1");
+            const maxViews = prompt("Ile razy można to wyświetlić? (1 lub 2):", "1");
             const allowedViews = (maxViews === "2") ? 2 : 1;
 
             await addDoc(collection(db, "stories"), {
@@ -451,9 +485,10 @@
                 viewedBy: [],
                 createdAt: Date.now()
             });
-            alert("Relacja dodana!");
+            alert("Relacja opublikowana!");
         };
 
+        // NAPRAWA: Sprawdzanie wyświetleń relacji (koniec pętli nieskończonej)
         function listenToGlobalStories() {
             const container = document.getElementById('storiesContainer');
             const q = query(collection(db, "stories"));
@@ -468,7 +503,10 @@
                     if(!story || !story.author) return;
 
                     const currentViews = story.viewedBy || [];
-                    if(currentViews.filter(u => u === currentUser.username).length >= (story.maxViews || 1)) {
+                    const userViewsCount = currentViews.filter(u => u === currentUser.username).length;
+                    
+                    // Jeśli zalogowany obejrzał już tyle razy ile wynosi limit - relacja znika z jego oczu!
+                    if(userViewsCount >= (story.maxViews || 1)) {
                         return; 
                     }
 
@@ -478,7 +516,7 @@
                         <div class="story-circle" id="circle-${storyId}">
                             <div class="story-text-avatar">${story.author.substring(0, 2)}</div>
                         </div>
-                        <span style="font-size:11px; color:#fff; font-weight:500;">${story.author}</span>
+                        <span style="font-size:12px; color:#fff; font-weight:600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%; text-align:center;">${story.author}</span>
                     `;
                     wrapper.querySelector('.story-circle').addEventListener('click', () => openStory(storyId, story));
                     container.appendChild(wrapper);
@@ -497,8 +535,8 @@
             badgeZone.innerText = `Limit: ${story.maxViews}x`;
             contentZone.innerHTML = `<div class="story-text-content">${story.content}</div>`;
 
-            // POPRAWKA UPRAWNIEŃ: ogxldtg może usuwać każdą relację
-            if(story.author === currentUser.username || currentUser.username === 'ogxldtg') {
+            // Uprawnienia do usuwania relacji: Właściciel, ogxldtg lub nadany MOD
+            if(story.author === currentUser.username || currentUser.username === 'ogxldtg' || currentUser.canDeleteEverything) {
                 deleteContainer.innerHTML = `<button class="delete-story-btn">Usuń</button>`;
                 deleteContainer.querySelector('button').addEventListener('click', () => window.deleteStory(storyId));
             } else {
@@ -509,24 +547,26 @@
 
             if(story.author !== currentUser.username) {
                 const currentViews = story.viewedBy || [];
-                const updatedViewedBy = [...currentViews, currentUser.username];
-                const timesThisUserWatched = updatedViewedBy.filter(u => u === currentUser.username).length + 1;
+                currentViews.push(currentUser.username); // Dodajemy instancję obejrzenia do tablicy
+                
+                const timesThisUserWatched = currentViews.filter(u => u === currentUser.username).length;
 
                 if(story.maxViews === 2 && timesThisUserWatched === 2) {
                     try {
                         await addDoc(collection(db, "ghost_notifications"), {
                             targetUser: story.author,
                             senderUser: currentUser.username,
-                            message: `Użytkownik ${currentUser.username} wyświetlił Twoją relację po raz drugi i ostatni!`,
+                            message: `Użytkownik ${currentUser.username} odtworzył relację 2. i zarazem ostatni raz!`,
                             timestamp: Date.now()
                         });
                     } catch(e){}
                 }
 
                 try {
+                    // Aktualizacja danych w Firebase przy użyciu zwykłego nadpisania zamiast wadliwego arrayUnion
                     await updateDoc(doc(db, "stories", storyId), {
                         viewsCount: (story.viewsCount || 0) + 1,
-                        viewedBy: arrayUnion(currentUser.username)
+                        viewedBy: currentViews
                     });
                 } catch(e){}
             }
@@ -537,7 +577,7 @@
         };
 
         window.deleteStory = async function(storyId) {
-            if(confirm("Czy chcesz całkowicie wymazać tę relację?")) {
+            if(confirm("Czy całkowicie skasować tę relację z serwera aplikacji?")) {
                 await deleteDoc(doc(db, "stories", storyId));
                 window.closeStoryModal();
             }
@@ -557,10 +597,10 @@
         }
 
         window.createNewShortcut = async function() {
-            const name = prompt("Podaj unikalną nazwę skrótu grupy:");
+            const name = prompt("Podaj nazwę skrótu grupy:");
             if(!name) return;
             activeShortcut = name;
-            alert(`Skrót [${name}] został aktywowany.`);
+            alert(`Skrót [${name}] aktywowany.`);
         };
 
         function listenToActiveChatsList() {
@@ -595,9 +635,7 @@
             const userRef = doc(db, "users", target);
             const userSnap = await getDoc(userRef);
 
-            if(!userSnap.exists()) {
-                return alert("Taki użytkownik nie istnieje.");
-            }
+            if(!userSnap.exists()) return alert("Taki użytkownik nie istnieje.");
             selectChat(target);
         };
 
