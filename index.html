@@ -3,177 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperApp z Panelem Admina</title>
+    <title>SnapApp - Nowa Generacja</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: #0b0b0c; color: #f5f6f7; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        :root {
+            --bg-main: #0a0a0c;
+            --bg-surface: #121216;
+            --bg-field: #1c1c24;
+            --snap-yellow: #FFFC00;
+            --snap-blue: #00b4ff;
+            --snap-purple: #a445ff;
+            --text-main: #ffffff;
+            --text-muted: #8e8e93;
+            --border: rgba(255, 255, 255, 0.06);
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; justify-content: center; overflow: hidden; }
         
         /* Auth Screen */
-        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 20px; background: linear-gradient(135deg, #0f0c20 0%, #060608 100%); }
-        .auth-box { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); padding: 35px; border-radius: 24px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
-        .auth-box h2 { font-size: 28px; margin-bottom: 20px; background: linear-gradient(45deg, #0084ff, #a445ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .auth-links { margin-top: 15px; font-size: 14px; color: #aaa; cursor: pointer; text-decoration: underline; }
+        .auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; padding: 20px; background: radial-gradient(circle at top right, #1f1235 0%, var(--bg-main) 100%); position: fixed; z-index: 10000; }
+        .auth-box { background: var(--bg-surface); border: 1px solid var(--border); padding: 40px 30px; border-radius: 32px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .auth-box h2 { font-size: 32px; font-weight: 800; margin-bottom: 24px; background: linear-gradient(45deg, var(--snap-yellow), #ff5e00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .auth-links { margin-top: 20px; font-size: 14px; color: var(--text-muted); cursor: pointer; text-decoration: underline; transition: color 0.2s; }
+        .auth-links:hover { color: var(--text-main); }
         
         /* App Container */
-        .app-container { display: flex; flex-direction: column; height: 100vh; width: 100%; max-width: 600px; background: #16161a; display: none; overflow: hidden; position: relative; }
-        .header { background: #1e1e24; padding: 12px 20px; border-bottom: 1px solid #2a2a35; }
-        .search-box { display: flex; gap: 10px; margin-top: 8px; }
+        .app-container { display: none; flex-direction: column; height: 100vh; width: 100%; max-width: 480px; background: var(--bg-main); border-left: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; }
         
-        /* Sekcja Stories (Relacje) */
-        .stories-container { display: flex; gap: 12px; padding: 12px 20px; background: #1a1a20; border-bottom: 1px solid #25252e; overflow-x: auto; align-items: center; }
-        .story-circle { width: 56px; height: 56px; border-radius: 50%; border: 2.5px solid #0084ff; padding: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; background: #121214; }
+        /* Header */
+        .header { background: var(--bg-surface); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .profile-badge { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 6px; }
+        .profile-badge b { color: var(--snap-blue); }
+        .admin-tag { background: var(--snap-purple); font-size: 10px; padding: 2px 6px; border-radius: 8px; font-weight: 900; letter-spacing: 0.5px; }
+        
+        /* Search inputs */
+        .search-box { display: flex; gap: 8px; background: var(--bg-field); padding: 4px; border-radius: 20px; border: 1px solid var(--border); }
+        .search-box input { background: transparent; border: none; padding: 8px 16px; color: white; flex: 1; outline: none; font-size: 14px; }
+        .search-box button { background: var(--snap-blue); color: black; font-weight: 700; border-radius: 16px; padding: 6px 16px; border: none; cursor: pointer; font-size: 13px; }
+
+        /* SKRÓTY i STORIES (Snapchat Style) */
+        .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; padding: 12px 20px 4px 20px; }
+        .stories-container { display: flex; gap: 14px; padding: 10px 20px 16px 20px; overflow-x: auto; align-items: center; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
+        .stories-container::-webkit-scrollbar { display: none; }
+        
+        .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-align: center; width: 64px; shrink: 0; }
+        .story-circle { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--snap-yellow); padding: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-main); transition: transform 0.2s; }
+        .story-circle:active { transform: scale(0.92); }
         .story-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-        .story-circle.add-story { border: 2px dashed #555; color: #aaa; font-size: 20px; font-weight: bold; }
-        .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: #a445ff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: white; text-align: center; overflow: hidden; text-transform: uppercase; }
+        .story-circle.add-story { border: 2px dashed #444; color: var(--snap-yellow); font-size: 24px; font-weight: 300; background: var(--bg-field); }
+        .story-circle.add-shortcut { border: 2px dashed #444; color: var(--snap-purple); font-size: 20px; background: var(--bg-field); }
+        .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: white; text-transform: uppercase; }
 
-        /* Modal do oglądania relacji */
-        .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .story-modal img { max-width: 100%; max-height: 70vh; border-radius: 12px; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
-        .story-modal .story-text-content { background: #1e1e24; padding: 30px; border-radius: 16px; min-width: 280px; text-align: center; font-size: 20px; font-weight: bold; border: 1px solid #3a3a45; }
+        /* Inbox (Recent Chats) */
+        .recent-chats { padding: 12px 20px; display: flex; gap: 10px; overflow-x: auto; background: var(--bg-main); min-height: 55px; }
+        .recent-chats::-webkit-scrollbar { display: none; }
+        .chat-chip { background: var(--bg-surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 24px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #d1d1d6; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .chat-chip.active { background: var(--snap-blue); color: #000; font-weight: 700; border-color: transparent; box-shadow: 0 4px 12px rgba(0,180,255,0.3); }
+        .chat-chip.group-chip { border-color: var(--snap-purple); }
 
-        /* Zakładki i Panele */
-        .tab-bar { display: flex; background: #1e1e24; border-top: 1px solid #2a2a35; min-height: 60px; z-index: 1000; }
-        .tab-btn { flex: 1; background: none; border: none; color: #777; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-        .tab-btn.active { color: #0084ff; }
-        .panel { flex: 1; display: none; flex-direction: column; overflow: hidden; background: #121214; }
-        .panel.active { display: flex; }
-
-        /* Skrzynka odebranych czatów */
-        .recent-chats { padding: 10px 20px; background: #1a1a20; border-bottom: 1px solid #25252e; display: flex; gap: 10px; overflow-x: auto; align-items: center; min-height: 50px; }
-        .chat-chip { background: #252530; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; color: #b0b3b8; display: flex; align-items: center; gap: 6px; }
-        .chat-chip.active { background: #0084ff; color: white; font-weight: bold; }
-        .group-chip { border: 1px solid #a445ff; }
-
-        /* Okno wiadomości */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .msg-wrapper { display: flex; flex-direction: column; max-width: 75%; width: fit-content; }
+        /* Chat View */
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: linear-gradient(to bottom, var(--bg-main), #0f0f13); }
+        #chat-box::-webkit-scrollbar { width: 4px; }
+        #chat-box::-webkit-scrollbar-thumb { background: #2c2c35; border-radius: 2px; }
+        
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 78%; width: fit-content; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.them { align-self: flex-start; align-items: flex-start; }
         
-        .msg-sender { font-size: 11px; color: #888; margin-bottom: 2px; padding: 0 4px; }
-        .msg { padding: 12px 16px; border-radius: 18px; word-break: break-word; font-size: 15px; position: relative; width: 100%; }
-        .msg img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; cursor: pointer; }
+        .msg-sender { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; padding: 0 6px; font-weight: 700; }
+        .msg { padding: 12px 18px; border-radius: 22px; word-break: break-word; font-size: 15px; position: relative; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .msg img { max-width: 100%; border-radius: 14px; margin-top: 6px; display: block; cursor: pointer; }
         
-        .msg.me { background: linear-gradient(135deg, #0076ff, #0084ff); color: white; border-bottom-right-radius: 4px; }
-        .msg.them { background: #242526; color: #e4e6eb; border-bottom-left-radius: 4px; }
+        .msg.me { background: var(--snap-blue); color: black; font-weight: 500; border-bottom-right-radius: 4px; }
+        .msg.them { background: var(--bg-surface); color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
         
-        .msg-meta { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 4px; display: flex; gap: 8px; justify-content: flex-end; width: 100%; }
-        .msg.them .msg-meta { color: #888; }
-        .msg-actions { font-size: 11px; color: #0084ff; cursor: pointer; margin-left: 5px; font-weight: bold; }
-        .msg-actions.del { color: #ff4d4d; }
+        .msg-meta { font-size: 10px; color: rgba(0,0,0,0.4); margin-top: 4px; display: flex; gap: 6px; justify-content: flex-end; font-weight: 600; }
+        .msg.them .msg-meta { color: var(--text-muted); }
+        .msg-actions { font-size: 11px; color: #0066cc; cursor: pointer; font-weight: 700; margin-left: 4px; }
+        .msg-actions.del { color: #ff3b30; }
 
-        .input-area { padding: 16px; background: #1e1e24; display: flex; gap: 10px; border-top: 1px solid #2a2a35; align-items: center; }
+        /* Input Area */
+        .input-area { padding: 16px; background: var(--bg-surface); display: flex; gap: 12px; border-top: 1px solid var(--border); align-items: center; }
+        .input-wrapper { flex: 1; display: flex; align-items: center; background: var(--bg-field); border-radius: 24px; padding-right: 6px; border: 1px solid var(--border); }
+        .input-wrapper input { background: transparent; border: none; color: white; padding: 14px 20px; font-size: 15px; flex: 1; outline: none; }
+        
+        .icon-btn { background: var(--bg-field); border: 1px solid var(--border); color: white; width: 48px; height: 48px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; shrink: 0; }
+        .icon-btn:hover { background: #262632; }
+        .send-btn { background: var(--snap-yellow); color: black; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 14px; }
+
+        /* Tabs & Navigation */
+        .tab-bar { display: flex; background: var(--bg-surface); border-top: 1px solid var(--border); min-height: 65px; padding-bottom:env(safe-area-inset-bottom); }
+        .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .tab-btn.active { color: var(--snap-yellow); }
+        
+        .panel { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--bg-main); }
+        .panel.active { display: flex; }
         #map { width: 100%; flex: 1; z-index: 1; }
-        
-        /* Panel Admina */
-        .admin-list { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .admin-user-row { background: #1e1e24; padding: 15px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #2a2a35; }
-        .admin-user-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a35; padding-bottom: 6px; }
-        .admin-user-details { font-size: 12px; color: #aaa; display: flex; flex-direction: column; gap: 3px; }
-        
-        .status-dot { width: 10px; height: 10px; background: #444; border-radius: 50%; display: inline-block; }
-        .status-dot.online { background: #31a24c; box-shadow: 0 0 8px #31a24c; }
 
-        input { background: #2a2a35; border: 1px solid transparent; color: white; padding: 12px 18px; border-radius: 24px; font-size: 15px; flex: 1; outline: none; }
-        button { background: #0084ff; color: white; border: none; padding: 12px 20px; border-radius: 24px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        .icon-btn { background: #333; padding: 12px; border-radius: 50%; font-size: 16px; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; cursor: pointer; border:none;}
-        .delete-pin-btn { background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 8px; display: block; width: 100%; }
-        .ban-btn { background: #e03b3b; font-size: 11px; padding: 6px 12px; border-radius: 12px; font-weight: bold; color: white; border: none; cursor: pointer; }
-        .ban-btn.unban { background: #31a24c; }
+        /* Admin Dashboard UI */
+        .admin-list { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .admin-user-row { background: var(--bg-surface); padding: 18px; border-radius: 20px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border); }
+        .admin-user-header { display: flex; justify-content: space-between; align-items: center; }
+        .admin-user-details { font-size: 12px; color: var(--text-muted); background: var(--bg-field); padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.02); }
+        .status-dot { width: 8px; height: 8px; background: #3a3a3a; border-radius: 50%; display: inline-block; }
+        .status-dot.online { background: #34c759; box-shadow: 0 0 10px #34c759; }
+        .ban-btn { background: #ff3b30; font-size: 11px; padding: 6px 14px; border-radius: 14px; font-weight: 700; color: white; border: none; cursor: pointer; }
+        .ban-btn.unban { background: #34c759; }
+
+        /* Story View Modal */
+        .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .story-modal img { max-width: 100%; max-height: 80vh; border-radius: 20px; }
+        .story-modal .story-text-content { background: var(--bg-surface); padding: 40px; border-radius: 24px; width: 85%; max-width: 340px; text-align: center; font-size: 22px; font-weight: 700; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .story-top-info { position: absolute; top: 30px; left: 20px; font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+
+        input[type="text"], input[type="password"] {
+            background: var(--bg-field); border: 1px solid var(--border); color: white; padding: 14px 20px; border-radius: 20px; font-size: 15px; outline: none;
+        }
+        button:active { transform: scale(0.97); }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
 
-    <!-- OKNO LOGOWANIA -->
+    <!-- LOGOWANIE -->
     <div class="auth-screen" id="loginScreen">
         <div class="auth-box">
-            <h2>Zaloguj się 💬</h2>
-            <input type="text" id="loginUsername" placeholder="Twój nick..." style="margin-bottom:8px;">
-            <input type="password" id="loginPassword" placeholder="Hasło..." style="margin-bottom:8px;">
-            <button onclick="handleLogin()" style="width: 100%; margin-top: 10px;">Zaloguj</button>
-            <div class="auth-links" onclick="toggleAuthScreens(false)">Nie masz konta? Zarejestruj się</div>
+            <h2>SnapApp 👻</h2>
+            <input type="text" id="loginUsername" placeholder="Nazwa użytkownika..." style="width:100%; margin-bottom:12px;">
+            <input type="password" id="loginPassword" placeholder="Hasło..." style="width:100%; margin-bottom:16px;">
+            <button onclick="handleLogin()" style="width: 100%; background: var(--snap-yellow); color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zaloguj się</button>
+            <div class="auth-links" onclick="toggleAuthScreens(false)">Stwórz nowe konto</div>
         </div>
     </div>
 
-    <!-- OKNO REJESTRACJI -->
+    <!-- REJESTRACJA -->
     <div class="auth-screen" id="registerScreen" style="display: none;">
         <div class="auth-box">
-            <h2>Zarejestruj się ✨</h2>
-            <input type="text" id="regUsername" placeholder="Wymyśl nick..." style="margin-bottom:8px;">
-            <input type="password" id="regPassword" placeholder="Wymyśl hasło..." style="margin-bottom:8px;">
-            <button onclick="handleRegister()" style="width: 100%; margin-top: 10px;">Stwórz konto</button>
-            <div class="auth-links" onclick="toggleAuthScreens(true)">Masz już konto? Zaloguj się</div>
+            <h2>Dołącz teraz ✨</h2>
+            <input type="text" id="regUsername" placeholder="Wybierz nick..." style="width:100%; margin-bottom:12px;">
+            <input type="password" id="regPassword" placeholder="Wymyśl silne hasło..." style="width:100%; margin-bottom:16px;">
+            <button onclick="handleRegister()" style="width: 100%; background: white; color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zarejestruj się</button>
+            <div class="auth-links" onclick="toggleAuthScreens(true)">Masz już konto? Zaloguj</div>
         </div>
     </div>
 
-    <!-- GŁÓWNA APLIKACJA -->
+    <!-- MAIN CONTAINER -->
     <div class="app-container" id="appContainer">
         
-        <!-- PANEL CZATU -->
+        <!-- PANEL CZATU / STORIES -->
         <div id="panel-chat" class="panel active">
             <div class="header">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>Profil: <b id="displayMyName" style="color: #0084ff;"></b> <span id="adminBadge" style="color: #a445ff; font-weight: bold; display: none;">[ADMIN]</span></span>
-                    <button onclick="location.reload()" style="padding: 4px 10px; font-size: 11px; background: #333;">Wyloguj</button>
+                <div class="header-top">
+                    <div class="profile-badge">👻 <span>Profil: <b id="displayMyName"></b></span> <span id="adminBadge" class="admin-tag" style="display: none;">ADMIN</span></div>
+                    <button onclick="location.reload()" style="padding: 6px 12px; font-size: 12px; background: var(--bg-field); border: 1px solid var(--border); color:white; border-radius:12px; cursor:pointer;">Wyloguj</button>
                 </div>
                 <div class="search-box">
-                    <input type="text" id="searchUser" placeholder="Wyszukaj znajomego po nicku...">
+                    <input type="text" id="searchUser" placeholder="Szukaj znajomego po nicku...">
                     <button onclick="startChatWithSearchedUser()">Czat</button>
                 </div>
             </div>
 
-            <!-- RELACJE (STORIES) -->
+            <!-- STORIES + SKRÓTY (SNAPCHAT LOOK) -->
+            <div class="section-title">Relacje i Skróty</div>
             <div class="stories-container" id="storiesContainer">
-                <div class="story-circle add-story" onclick="createNewStory()">+</div>
+                <div class="story-wrapper">
+                    <div class="story-circle add-story" onclick="createNewStory()">+</div>
+                    <span>Dodaj</span>
+                </div>
+                <div class="story-wrapper">
+                    <div class="story-circle add-shortcut" onclick="createNewShortcut()">⚙️</div>
+                    <span>Skrót</span>
+                </div>
             </div>
 
-            <!-- SKRZYNKA ODEBRANYCH CZATÓW -->
+            <!-- SKRZYNKA CZATÓW -->
+            <div class="section-title">Rozmowy</div>
             <div class="recent-chats" id="recentChats"></div>
 
-            <!-- OKNO ROZMOWY -->
-            <div style="background: #1a1a20; padding: 6px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #25252e;" id="chatSubHeader">
-                <span id="currentChatTitle" style="font-weight:bold; color:#0084ff;">Wybierz lub wyszukaj czat</span>
-                <button id="createGroupBtn" style="display:none; padding:4px 10px; font-size:11px; background:#a445ff;" onclick="convertChatToGroup()">+ Utwórz grupę</button>
+            <!-- AKTYWNE OKNO CZATU -->
+            <div style="background: var(--bg-surface); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);" id="chatSubHeader">
+                <span id="currentChatTitle" style="font-weight:700; color:#fff; font-size:14px;">Wybierz czat</span>
+                <button id="createGroupBtn" style="display:none; padding:6px 12px; font-size:11px; background:var(--snap-purple); border:none; border-radius:12px; font-weight:700; color:white; cursor:pointer;" onclick="convertChatToGroup()">+ Stwórz grupę</button>
             </div>
 
             <div id="chat-box">
-                <div style="text-align: center; color: #555; margin-top: 40px;">Wybierz osobę lub grupę z listy powyżej albo wyszukaj znajomego.</div>
+                <div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size:14px;">Wybierz znajomego, aby rozpocząć snapowanie!</div>
             </div>
 
-            <!-- INPUT CZATU -->
+            <!-- INPUT AREA -->
             <div class="input-area" id="inputArea" style="display: none;">
                 <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(this)">
-                <button class="icon-btn" onclick="document.getElementById('imageInput').click()">🖼️</button>
-                <input type="text" id="messageInput" placeholder="Napisz wiadomość...">
-                <button onclick="sendMessage()">Wyślij</button>
+                <button class="icon-btn" onclick="document.getElementById('imageInput').click()">📸</button>
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Wyślij czata...">
+                    <button class="send-btn" onclick="sendMessage()">Wyślij</button>
+                </div>
             </div>
         </div>
 
         <!-- PANEL MAPY -->
         <div id="panel-map" class="panel">
-            <div style="background: #1e1e24; padding: 10px; text-align: center; font-size: 12px; color: #aaa;">Kliknij na mapę, aby dodać pinezkę.</div>
+            <div style="background: var(--bg-surface); padding: 12px; text-align: center; font-size: 13px; color: var(--text-muted); border-bottom:1px solid var(--border);">Kliknij na mapę SnapMap, aby zostawić pinezkę.</div>
             <div id="map"></div>
         </div>
 
         <!-- PANEL ADMINA -->
         <div id="panel-admin" class="panel">
-            <div style="background: #1e1e24; padding: 15px; text-align: center; font-weight: bold; color: #a445ff; border-bottom: 1px solid #2a2a35;">PANEL ADMINISTRATORA</div>
+            <div style="background: var(--bg-surface); padding: 16px; text-align: center; font-weight: 800; color: var(--snap-purple); border-bottom: 1px solid var(--border); letter-spacing:1px;">PANEL INWIGILACJI</div>
             <div class="admin-list" id="adminUsersList"></div>
         </div>
 
-        <!-- DOLNE ZAKŁADKI -->
+        <!-- NAVBAR DOLNY -->
         <div class="tab-bar">
-            <button class="tab-btn active" id="btn-tab-chat" onclick="switchTab('chat')">💬 <span>Czat</span></button>
-            <button class="tab-btn" id="btn-tab-map" onclick="switchTab('map')">📍 <span>Mapa</span></button>
+            <button class="tab-btn active" id="btn-tab-chat" onclick="switchTab('chat')">💬 <span>Czaty</span></button>
+            <button class="tab-btn" id="btn-tab-map" onclick="switchTab('map')">🗺️ <span>SnapMap</span></button>
             <button class="tab-btn" id="btn-tab-admin" onclick="switchTab('admin')" style="display: none;">👑 <span>Admin</span></button>
         </div>
     </div>
 
-    <!-- MODAL DO OGLĄDANIA RELACJI -->
+    <!-- MODAL STORIES -->
     <div class="story-modal" id="storyModal" onclick="this.style.display='none'">
-        <div style="position: absolute; top: 20px; left: 20px; font-weight: bold;" id="storyModalAuthor">Autor</div>
+        <div class="story-top-info"><span style="font-size:20px;">👻</span> <span id="storyModalAuthor">Autor</span></div>
         <div id="storyModalContent" style="width: 100%; display: flex; justify-content: center; align-items: center;"></div>
     </div>
 
@@ -193,19 +245,18 @@
         let unsubscribeMessages = null;
         let activeInboxRooms = [];
         let map, markersGroup;
+        let shortcutsList = [];
 
-        // Proste rozpoznawanie urządzenia z UserAgent
         function getDeviceModel() {
             const ua = navigator.userAgent;
             if (/android/i.test(ua)) {
                 const match = ua.match(/Android\s([0-9\.]+);.*?(Build\/|\s)([A-Z0-9_-]+)/i);
-                return match ? `Android (Model: ${match[3]})` : "Urządzenie z Androidem";
+                return match ? `Android (Model: ${match[3]})` : "Android Phone";
             }
-            if (/iPhone|iPad|iPod/i.test(ua)) return "Apple iOS (iPhone/iPad)";
-            if (/Windows/i.test(ua)) return "Komputer (Windows PC)";
-            if (/Macintosh/i.test(ua)) return "Komputer (Apple Mac)";
-            if (/Linux/i.test(ua)) return "Komputer (Linux)";
-            return "Nieznane urządzenie";
+            if (/iPhone|iPad|iPod/i.test(ua)) return "iPhone / iOS Device";
+            if (/Windows/i.test(ua)) return "Windows PC";
+            if (/Macintosh/i.test(ua)) return "Apple Mac";
+            return "Urządzenie Przeglądarkowe";
         }
 
         function hashPassword(string) { return CryptoJS.SHA256(string).toString(); }
@@ -214,14 +265,13 @@
             document.getElementById("registerScreen").style.display = showLogin ? "none" : "flex";
         }
 
-        // REJESTRACJA + Zapisywanie informacji o urządzeniu
         window.handleRegister = async function() {
             const user = document.getElementById("regUsername").value.trim().toLowerCase();
             const pass = document.getElementById("regPassword").value.trim();
-            if(!user || !pass) return alert("Uzupełnij wszystkie pola!");
+            if(!user || !pass) return alert("Uzupełnij pola!");
             const userRef = doc(db, "users", user);
             const userSnap = await getDoc(userRef);
-            if(userSnap.exists()) return alert("Taki użytkownik już istnieje!");
+            if(userSnap.exists()) return alert("Nick zajęty!");
             
             await setDoc(userRef, { 
                 password: hashPassword(pass), 
@@ -229,21 +279,19 @@
                 createdAt: Date.now(),
                 deviceInfo: getDeviceModel()
             });
-            alert("Konto utworzone!"); toggleAuthScreens(true);
+            alert("Zarejestrowano!"); toggleAuthScreens(true);
         }
 
-        // LOGOWANIE + Aktualizacja info o urządzeniu przy ponownym wjeździe
         window.handleLogin = async function() {
             const user = document.getElementById("loginUsername").value.trim().toLowerCase();
             const pass = document.getElementById("loginPassword").value.trim();
-            if(!user || !pass) return alert("Uzupełnij wszystkie pola!");
+            if(!user || !pass) return alert("Uzupełnij pola!");
             const userRef = doc(db, "users", user);
             const userSnap = await getDoc(userRef);
-            if(!userSnap.exists() || userSnap.data().password !== hashPassword(pass)) return alert("Błędny nick lub hasło!");
-            if(userSnap.data().isBanned) return alert("Zostałeś zbanowany!");
+            if(!userSnap.exists() || userSnap.data().password !== hashPassword(pass)) return alert("Błędne dane!");
+            if(userSnap.data().isBanned) return alert("Zbanowany!");
 
             myNick = user;
-            // Aktualizacja urządzenia i ostatniego logowania w locie
             await updateDoc(userRef, { deviceInfo: getDeviceModel() });
 
             document.getElementById("displayMyName").innerText = myNick;
@@ -260,13 +308,13 @@
 
             updatePresence(); setInterval(updatePresence, 4000);
             listenToInbox();
-            listenToStories();
+            listenToShortcuts(); // Nowość: ładowanie skrótów ze Snapa
             initMap();
         }
 
         async function updatePresence() { if (myNick) await setDoc(doc(db, "presence", myNick), { lastActive: Date.now() }); }
 
-        // AUTOMATYCZNY INBOX
+        // CZAT INBOX
         function listenToInbox() {
             onSnapshot(collection(db, "rooms"), (snapshot) => {
                 activeInboxRooms = [];
@@ -286,7 +334,6 @@
             activeInboxRooms.forEach(room => {
                 const chip = document.createElement("div");
                 chip.className = `chat-chip ${room.id === currentRoomId ? 'active' : ''} ${room.isGroup ? 'group-chip' : ''}`;
-                
                 let title = room.isGroup ? `👥 ${room.groupName}` : `👤 ${room.participants.find(p => p !== myNick)}`;
                 chip.innerText = title;
                 chip.onclick = () => openChatRoom(room.id, room.isGroup, room.participants, room.groupName || title);
@@ -297,10 +344,9 @@
         window.startChatWithSearchedUser = async function() {
             const target = document.getElementById("searchUser").value.trim().toLowerCase();
             if (!target || target === myNick) return alert("Błędny nick!");
-            
             const userRef = doc(db, "users", target);
             const userSnap = await getDoc(userRef);
-            if(!userSnap.exists()) return alert("Taki użytkownik nie istnieje!");
+            if(!userSnap.exists()) return alert("Nie znaleziono użytkownika!");
 
             const roomId = [myNick, target].sort().join("_VS_");
             await setDoc(doc(db, "rooms", roomId), { participants: [myNick, target], isGroup: false });
@@ -312,26 +358,21 @@
             currentRoomId = roomId;
             isGroupRoom = isGroup;
             activeChatParticipants = participants;
-            
             document.getElementById("currentChatTitle").innerText = isGroup ? `Grupa: ${title}` : `Rozmowa z: ${title}`;
             document.getElementById("createGroupBtn").style.display = isGroup ? "none" : "block";
             document.getElementById("inputArea").style.display = "flex";
-            
             renderInboxUI();
             listenToMessages();
         }
 
-        // TWORZENIE GRUPY
         window.convertChatToGroup = async function() {
             if (isGroupRoom) return;
             const otherUser = activeChatParticipants.find(p => p !== myNick);
-            const inputUsers = prompt("Wpisz nicki innych użytkowników po przecinku (np. tomek, ania):");
+            const inputUsers = prompt("Wpisz nicki innych użytkowników po przecinku:");
             if (!inputUsers) return;
-            
             let parsed = inputUsers.split(",").map(u => u.trim().toLowerCase()).filter(u => u.length > 0);
             let finalParticipants = Array.from(new Set([myNick, otherUser, ...parsed]));
-            
-            const groupName = prompt("Wpisz nazwę dla grupy:");
+            const groupName = prompt("Nazwa grupy:");
             if (!groupName) return;
 
             const newGroupId = "group_" + Date.now();
@@ -339,7 +380,6 @@
             openChatRoom(newGroupId, true, finalParticipants, groupName);
         }
 
-        // NASŁUCHIWANIE WIADOMOŚCI
         function listenToMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
             const msgSubcollectionRef = collection(db, "rooms", currentRoomId, "messages");
@@ -353,7 +393,6 @@
                 messages.forEach(data => {
                     const wrapper = document.createElement("div");
                     wrapper.className = `msg-wrapper ${data.sender === myNick ? 'me' : 'them'}`;
-                    
                     const senderLabel = document.createElement("div");
                     senderLabel.className = "msg-sender";
                     senderLabel.innerText = data.sender;
@@ -381,21 +420,16 @@
                     if (data.sender === myNick) {
                         if (data.type !== "image") {
                             const editBtn = document.createElement("span");
-                            editBtn.className = "msg-actions";
-                            editBtn.innerText = "[E]";
+                            editBtn.className = "msg-actions"; editBtn.innerText = "Edytuj";
                             editBtn.onclick = () => editMessage(data.id, data.text);
                             meta.appendChild(editBtn);
                         }
                         const delBtn = document.createElement("span");
-                        delBtn.className = "msg-actions del";
-                        delBtn.innerText = "[X]";
+                        delBtn.className = "msg-actions del"; delBtn.innerText = "Usuń";
                         delBtn.onclick = () => deleteMessage(data.id);
                         meta.appendChild(delBtn);
                     }
-                    
-                    msgDiv.appendChild(meta);
-                    wrapper.appendChild(msgDiv);
-                    chatBox.appendChild(wrapper);
+                    msgDiv.appendChild(meta); wrapper.appendChild(msgDiv); chatBox.appendChild(wrapper);
                 });
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
@@ -405,63 +439,98 @@
             const input = document.getElementById("messageInput");
             if (input.value.trim() !== "" && currentRoomId) {
                 const text = input.value; input.value = "";
-                const msgSubcollectionRef = collection(db, "rooms", currentRoomId, "messages");
-                await addDoc(msgSubcollectionRef, { sender: myNick, text: text, type: "text", timestamp: Date.now() });
+                await addDoc(collection(db, "rooms", currentRoomId, "messages"), { sender: myNick, text: text, type: "text", timestamp: Date.now() });
             }
         }
 
         window.sendImage = function(input) {
-            const file = input.files[0];
-            if (!file) return;
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
+                const img = new Image(); img.src = e.target.result;
                 img.onload = async function() {
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d");
-                    const max_size = 500;
-                    let width = img.width, height = img.height;
+                    const canvas = document.createElement("canvas"); const ctx = canvas.getContext("2d");
+                    const max_size = 500; let width = img.width, height = img.height;
                     if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
                     else { if (height > max_size) { width *= max_size / height; height = max_size; } }
-                    canvas.width = width; canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-                    
-                    const msgSubcollectionRef = collection(db, "rooms", currentRoomId, "messages");
-                    await addDoc(msgSubcollectionRef, { sender: myNick, text: compressedBase64, type: "image", timestamp: Date.now() });
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+                    await addDoc(collection(db, "rooms", currentRoomId, "messages"), { sender: myNick, text: canvas.toDataURL("image/jpeg", 0.7), type: "image", timestamp: Date.now() });
                 }
             }
-            reader.readAsDataURL(file);
-            input.value = "";
+            reader.readAsDataURL(file); input.value = "";
         }
 
         window.showBigImg = function(src, sender) {
             document.getElementById("storyModalAuthor").innerText = `Zdjęcie od: ${sender}`;
-            const cnt = document.getElementById("storyModalContent");
-            cnt.innerHTML = `<img src="${src}">`;
+            document.getElementById("storyModalContent").innerHTML = `<img src="${src}">`;
             document.getElementById("storyModal").style.display = "flex";
         }
 
         async function editMessage(id, oldText) {
-            const newText = prompt("Edytuj wiadomość:", oldText);
-            if (newText && newText.trim() !== oldText) {
-                await updateDoc(doc(db, "rooms", currentRoomId, "messages", id), { text: newText, edited: true });
-            }
+            const newText = prompt("Edytuj:", oldText);
+            if (newText && newText.trim() !== oldText) await updateDoc(doc(db, "rooms", currentRoomId, "messages", id), { text: newText, edited: true });
         }
-        async function deleteMessage(id) { if (confirm("Usunąć tę wiadomość?")) await deleteDoc(doc(db, "rooms", currentRoomId, "messages", id)); }
+        async function deleteMessage(id) { if (confirm("Usunąć?")) await deleteDoc(doc(db, "rooms", currentRoomId, "messages", id)); }
 
-        // WYBÓR GRUPY OSOB DLA RELACJI (Prywatne Stories / Skróty)
+        // ==================== NOWY SYSTEM: SKRÓTY A LA SNAPCHAT ====================
+        
+        // 1. Tworzenie stałego skrótu (grupy odbiorców oznaczonych ikoną EMOJI)
+        window.createNewShortcut = async function() {
+            const emoji = prompt("Wybierz jedno EMOJI jako ikonę skrótu (np. 🔥, 👻, 👑, ❤️):");
+            if (!emoji || emoji.trim().length === 0) return alert("Musisz podać emoji!");
+            
+            const usersInput = prompt("Wpisz nicki znajomych przypisanych do tego skrótu (oddziel przecinkami):");
+            if (!usersInput) return;
+            
+            let parsedUsers = usersInput.split(",").map(u => u.trim().toLowerCase()).filter(u => u.length > 0);
+            if (parsedUsers.length === 0) return alert("Skrót musi mieć przypisanego choć jednego znajomego!");
+
+            // Zapisujemy skrót w profilu usera
+            const shortcutId = "shortcut_" + Date.now();
+            await setDoc(doc(db, "users", myNick, "shortcuts", shortcutId), {
+                id: shortcutId,
+                emoji: emoji.trim(),
+                viewers: parsedUsers
+            });
+            alert(`Stworzono skrót ${emoji}! Teraz możesz szybko wysyłać do nich Relacje.`);
+        }
+
+        // Pobieranie skrótów z Firebase i nasłuchiwanie
+        function listenToShortcuts() {
+            onSnapshot(collection(db, "users", myNick, "shortcuts"), (snap) => {
+                shortcutsList = [];
+                snap.forEach(doc => shortcutsList.push(doc.data()));
+                listenToStories(); // Przeładuj stories uwzględniając nowe skróty
+            });
+        }
+
+        // 2. Dodawanie relacji (Wybór grupy tradycyjnej LUB snapchatowego skrótu)
         window.createNewStory = function() {
-            const targetsInput = prompt("Dla kogo ta relacja? Wpisz nicki znajomych oddzielając ich przecinkami (np. tomek, ania). Zostaw puste, by była dla WSZYSTKICH:");
-            let allowedViewers = null;
-            if (targetsInput && targetsInput.trim() !== "") {
-                allowedViewers = targetsInput.split(",").map(u => u.trim().toLowerCase()).filter(u => u.length > 0);
-                allowedViewers.push(myNick); // Sam też musisz ją widzieć
+            let targetViewers = null;
+
+            if (shortcutsList.length > 0) {
+                let msg = "Wybierz jak chcesz wysłać relację:\n0 - Dla wszystkich publicznie\n";
+                shortcutsList.forEach((s, idx) => {
+                    msg += `${idx + 1} - Skrót ${s.emoji} (Odbiorcy: ${s.viewers.join(", ")})\n`;
+                });
+                
+                const choice = prompt(msg);
+                if (choice === null) return;
+                const num = parseInt(choice);
+                if (!isNaN(num) && num > 0 && num <= shortcutsList.length) {
+                    const selectedShortcut = shortcutsList[num - 1];
+                    targetViewers = [...selectedShortcut.viewers, myNick]; // Przypisujemy odbiorców ze skrótu snapchata
+                }
+            } else {
+                const legacy = prompt("Wpisz nicki znajomych po przecinku (zostaw puste, aby była dla WSZYSTKICH):");
+                if (legacy && legacy.trim() !== "") {
+                    targetViewers = legacy.split(",").map(u => u.trim().toLowerCase()).filter(u => u.length > 0);
+                    targetViewers.push(myNick);
+                }
             }
 
-            const type = confirm("Kliknij OK dla zdjęcia, ANULUJ dla tekstu.");
-            if (type) {
+            const isImage = confirm("Kliknij OK, aby wrzucić FOTĘ, kliknij ANULUJ, aby wrzucić TEKST.");
+            if (isImage) {
                 const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
                 inp.onchange = function() {
                     const file = inp.files[0]; if (!file) return;
@@ -471,46 +540,39 @@
                             const canvas = document.createElement("canvas"); const ctx = canvas.getContext("2d");
                             canvas.width = 400; canvas.height = 400; ctx.drawImage(img,0,0,400,400);
                             await addDoc(collection(db, "stories"), { 
-                                sender: myNick, 
-                                type: "image", 
-                                content: canvas.toDataURL("image/jpeg",0.6), 
-                                timestamp: Date.now(),
-                                targetViewers: allowedViewers 
+                                sender: myNick, type: "image", content: canvas.toDataURL("image/jpeg",0.6), timestamp: Date.now(), targetViewers: targetViewers 
                             });
                         }
                     }; r.readAsDataURL(file);
                 }; inp.click();
             } else {
-                const txt = prompt("Wpisz treść relacji:");
+                const txt = prompt("Wpisz tekst Twojej relacji:");
                 if (txt && txt.trim() !== "") {
-                    addDoc(collection(db, "stories"), { 
-                        sender: myNick, 
-                        type: "text", 
-                        content: txt, 
-                        timestamp: Date.now(),
-                        targetViewers: allowedViewers 
-                    });
+                    addDoc(collection(db, "stories"), { sender: myNick, type: "text", content: txt, timestamp: Date.now(), targetViewers: targetViewers });
                 }
             }
         }
 
+        // Renderowanie Stories na pasku górnym
         function listenToStories() {
             onSnapshot(collection(db, "stories"), (snapshot) => {
                 const container = document.getElementById("storiesContainer");
-                container.querySelectorAll(".story-circle:not(.add-story)").forEach(el => el.remove());
-                const absoluteLimit = Date.now() - (24 * 60 * 60 * 1000); 
+                // Czyścimy stare relacje, zostawiamy tylko przyciski funkcyjne
+                container.querySelectorAll(".story-wrapper:not(:nth-child(1)):not(:nth-child(2))").forEach(el => el.remove());
+                const timeLimit = Date.now() - (24 * 60 * 60 * 1000); 
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.timestamp < absoluteLimit) return; 
+                    if (data.timestamp < timeLimit) return; 
+                    if (data.targetViewers && !data.targetViewers.includes(myNick)) return; // Prywatność skrótów
                     
-                    // Blokada prywatności: jeśli relacja ma określoną grupę osób i Cię tam nie ma -> nie zobaczysz jej
-                    if (data.targetViewers && !data.targetViewers.includes(myNick)) return;
-                    
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "story-wrapper";
+
                     const circle = document.createElement("div");
                     circle.className = "story-circle";
                     circle.onclick = () => {
-                        document.getElementById("storyModalAuthor").innerText = `Relacja użytkownika: ${data.sender}`;
+                        document.getElementById("storyModalAuthor").innerText = data.sender;
                         const cnt = document.getElementById("storyModalContent");
                         if (data.type === "image") cnt.innerHTML = `<img src="${data.content}">`;
                         else cnt.innerHTML = `<div class="story-text-content">${data.content}</div>`;
@@ -520,7 +582,12 @@
                     if (data.type === "image") circle.innerHTML = `<img src="${data.content}">`;
                     else circle.innerHTML = `<div class="story-text-avatar">${data.sender.slice(0,3)}</div>`;
                     
-                    container.appendChild(circle);
+                    const nameLabel = document.createElement("span");
+                    nameLabel.innerText = data.sender === myNick ? "Mój Snap" : data.sender;
+
+                    wrapper.appendChild(circle);
+                    wrapper.appendChild(nameLabel);
+                    container.appendChild(wrapper);
                 });
             });
         }
@@ -533,7 +600,7 @@
             if (tabName === 'map') setTimeout(() => { map.invalidateSize(); }, 200);
         }
 
-        // PANEL ADMINA DLA ogxldtg - Wyświetlanie daty rejestracji oraz urządzeń użytkowników
+        // PANEL INWIGILACJI ADMINA (ogxldtg)
         function listenToAllUsersForAdmin() {
             onSnapshot(collection(db, "users"), (uSnap) => {
                 onSnapshot(collection(db, "presence"), (pSnap) => {
@@ -546,23 +613,22 @@
                         const isOnline = (Date.now() - last) < 12000;
                         const isBanned = uData.isBanned || false;
                         
-                        // Konwersja timestamp na czytelną datę rejestracji
                         const regDate = uData.createdAt ? new Date(uData.createdAt).toLocaleString('pl-PL') : "Brak danych";
-                        const device = uData.deviceInfo || "Nieznany telefon / PC";
+                        const device = uData.deviceInfo || "Nieznane urządzenie";
 
                         const row = document.createElement("div"); 
                         row.className = "admin-user-row";
                         row.innerHTML = `
                             <div class="admin-user-header">
-                                <span>👤 <b>${username}</b> ${isBanned ? '<span style="color:#e03b3b; font-weight:bold;">[BAN]</span>':''}</span>
+                                <span>👤 <b style="color:var(--snap-blue); font-size:15px;">${username}</b> ${isBanned ? '<span style="color:#ff3b30; font-weight:bold;">[ZBANOWANY]</span>':''}</span>
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <span class="status-dot ${isOnline && !isBanned ? 'online':''}"></span>
-                                    <button class="ban-btn ${isBanned?'unban':''}" onclick="toggleBan('${username}', ${isBanned})">${isBanned?'Odbanuj':'BAN'}</button>
+                                    <button class="ban-btn ${isBanned?'unban':''}" onclick="toggleBan('${username}', ${isBanned})">${isBanned?'Odbanuj':'Zbanuj'}</button>
                                 </div>
                             </div>
                             <div class="admin-user-details">
-                                <span>📅 <b>Dołączył:</b> ${regDate}</span>
-                                <span>📱 <b>Urządzenie:</b> ${device}</span>
+                                <span>📅 <b>Konto założone:</b> ${regDate}</span>
+                                <span>📱 <b>Wykryty sprzęt:</b> ${device}</span>
                             </div>
                         `;
                         container.appendChild(row);
@@ -571,7 +637,7 @@
             });
         }
 
-        window.toggleBan = async function(u, stat) { if (myNick === "ogxldtg" && confirm(`Zmienić status blokady dla ${u}?`)) await updateDoc(doc(db, "users", u), { isBanned: !stat }); }
+        window.toggleBan = async function(u, stat) { if (myNick === "ogxldtg" && confirm(`Zmienić ban dla ${u}?`)) await updateDoc(doc(db, "users", u), { isBanned: !stat }); }
         window.deletePin = async function(id) { if (myNick === "ogxldtg" && confirm("Usunąć pinezkę?")) await deleteDoc(doc(db, "pins", id)); }
 
         function initMap() {
@@ -588,7 +654,7 @@
                 });
             });
             map.on('click', async (e) => {
-                const txt = prompt("Opis pinezki:"); if (txt !== null) await addDoc(collection(db, "pins"), { lat: e.latlng.lat, lng: e.latlng.lng, label: txt, createdBy: myNick, timestamp: Date.now() });
+                const txt = prompt("Wpisz status pinezki:"); if (txt !== null) await addDoc(collection(db, "pins"), { lat: e.latlng.lat, lng: e.latlng.lng, label: txt, createdBy: myNick, timestamp: Date.now() });
             });
         }
     </script>
