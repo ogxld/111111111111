@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapApp - Ghost Edition v2</title>
+    <title>SnapApp - Ghost Edition v2.1</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -232,7 +232,6 @@
         let mapMarker = null;
         let activeListeners = [];
 
-        // REJESTRACJA FUNKCJI DO OKNA GLOBALNEGO (NAPRAWA BŁĘDÓW UNDEFINED / BUTTON CLICK)
         window.toggleAuthScreens = function(showLogin) {
             document.getElementById('loginScreen').style.display = showLogin ? 'flex' : 'none';
             document.getElementById('registerScreen').style.display = showLogin ? 'none' : 'flex';
@@ -286,10 +285,13 @@
                     return alert("Błędne hasło!");
                 }
 
-                // GWARANCJA ZAPISU DANYCH ZANIM APLIKACJA RUSZY
-                currentUser = userData;
+                // GWARANCJA BEZPIECZEŃSTWA (NAPRAWA BŁĘDU): 
+                // Nawet jeśli w dokumencie DB brak pola username, wymuszamy je z inputu logowania.
+                currentUser = {
+                    username: user,
+                    ...userData
+                };
                 
-                // Aktualizacja UI dopiero po pełnym przypisaniu zmiennej
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'flex';
                 document.getElementById('displayMyName').innerText = currentUser.username;
@@ -302,6 +304,7 @@
 
         function initApp() {
             if(!currentUser || !currentUser.username) {
+                alert("Wystąpił błąd krytyczny profilu. Strona zostanie przeładowana.");
                 location.reload();
                 return;
             }
@@ -445,7 +448,7 @@
 
         function listenToGlobalStories() {
             const container = document.getElementById('storiesContainer');
-            const q = query(collection(db, "stories"), orderBy("createdAt", "desc"));
+            const q = query(collection(db, "stories"));
             
             onSnapshot(q, (snapshot) => {
                 const items = container.querySelectorAll('.story-wrapper');
@@ -455,7 +458,7 @@
                     const story = docSnap.data();
                     const storyId = docSnap.id;
 
-                    if(story.viewedBy.filter(u => u === currentUser.username).length >= story.maxViews) {
+                    if(story.viewedBy && story.viewedBy.filter(u => u === currentUser.username).length >= story.maxViews) {
                         return; 
                     }
 
@@ -495,7 +498,8 @@
             modal.style.display = 'flex';
 
             if(story.author !== currentUser.username) {
-                const updatedViewedBy = [...story.viewedBy, currentUser.username];
+                const currentViews = story.viewedBy || [];
+                const updatedViewedBy = [...currentViews, currentUser.username];
                 const timesThisUserWatched = updatedViewedBy.filter(u => u === currentUser.username).length + 1;
 
                 if(story.maxViews === 2 && timesThisUserWatched === 2) {
@@ -509,7 +513,7 @@
 
                 const storyRef = doc(db, "stories", storyId);
                 await updateDoc(storyRef, {
-                    viewsCount: story.viewsCount + 1,
+                    viewsCount: (story.viewsCount || 0) + 1,
                     viewedBy: arrayUnion(currentUser.username)
                 });
             }
@@ -556,7 +560,7 @@
 
         function listenToActiveChatsList() {
             const container = document.getElementById('recentChats');
-            const q = query(collection(db, "active_chats"), orderBy("lastActive", "desc"));
+            const q = query(collection(db, "active_chats"));
             
             onSnapshot(q, (snapshot) => {
                 container.innerHTML = '';
