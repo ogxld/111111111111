@@ -36,7 +36,6 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; }
         .profile-badge { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 6px; }
         .profile-badge b { color: var(--snap-blue); }
-        .admin-tag { background: var(--snap-purple); font-size: 10px; padding: 2px 6px; border-radius: 8px; font-weight: 900; letter-spacing: 0.5px; }
         
         /* Wyszukiwarka */
         .search-box { display: flex; gap: 8px; background: var(--bg-field); padding: 4px; border-radius: 20px; border: 1px solid var(--border); }
@@ -51,7 +50,6 @@
         .story-wrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-align: center; width: 64px; shrink: 0; }
         .story-circle { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--snap-yellow); padding: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-main); transition: transform 0.2s; }
         .story-circle:active { transform: scale(0.92); }
-        .story-circle img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         .story-circle.add-story { border: 2px dashed #444; color: var(--snap-yellow); font-size: 24px; font-weight: 300; background: var(--bg-field); }
         .story-circle.add-shortcut { border: 2px dashed #444; color: var(--snap-purple); font-size: 20px; background: var(--bg-field); }
         .story-text-avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: white; text-transform: uppercase; }
@@ -70,10 +68,10 @@
         
         .msg { padding: 12px 18px; border-radius: 22px; font-size: 15px; position: relative; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .msg.me { background: var(--snap-blue); color: black; border-bottom-right-radius: 4px; }
-        .msg.them { background: var(--bg-surface); color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid var(--border); cursor: pointer; }
+        .msg.them { background: var(--bg-surface); color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
         
-        /* Zabezpieczenie przed screenshotem (od siebie): blokowanie kopiowania */
-        .ghost-blur { filter: blur(4px); transition: filter 0.2s; user-select: none; -webkit-user-select: none; }
+        /* Ochrona przed podglądaczami - efekt rozmycia */
+        .ghost-blur { filter: blur(4px); transition: filter 0.2s; user-select: none; -webkit-user-select: none; cursor: pointer; }
         .ghost-blur:active { filter: blur(0px); }
 
         /* Panel dolnego wprowadzania wiadomości */
@@ -95,12 +93,15 @@
         .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .story-modal img { max-width: 100%; max-height: 80vh; border-radius: 20px; }
         .story-modal .story-text-content { background: var(--bg-surface); padding: 40px; border-radius: 24px; width: 85%; max-width: 340px; text-align: center; font-size: 22px; font-weight: 700; }
-        .story-top-info { position: absolute; top: 30px; left: 20px; right: 20px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+        .story-top-info { position: absolute; top: 30px; left: 20px; right: 20px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; z-index: 100000; }
         .delete-story-btn { background: #ff3b30; color: white; border: none; padding: 8px 14px; border-radius: 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
         input[type="text"], input[type="password"] { background: var(--bg-field); border: 1px solid var(--border); color: white; padding: 14px 20px; border-radius: 20px; font-size: 15px; outline: none; }
     </style>
+    
+    <!-- Biblioteki zewnętrzne -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -110,8 +111,8 @@
             <h2>SnapApp 👻</h2>
             <input type="text" id="loginUsername" placeholder="Nazwa użytkownika..." style="width:100%; margin-bottom:12px;">
             <input type="password" id="loginPassword" placeholder="Hasło..." style="width:100%; margin-bottom:16px;">
-            <button onclick="handleLogin()" style="width: 100%; background: var(--snap-yellow); color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zaloguj się</button>
-            <div class="auth-links" onclick="toggleAuthScreens(false)">Stwórz nowe konto</div>
+            <button onclick="window.handleLogin()" style="width: 100%; background: var(--snap-yellow); color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zaloguj się</button>
+            <div class="auth-links" onclick="window.toggleAuthScreens(false)">Stwórz nowe konto</div>
         </div>
     </div>
 
@@ -121,8 +122,8 @@
             <h2>Dołącz teraz ✨</h2>
             <input type="text" id="regUsername" placeholder="Wybierz nick..." style="width:100%; margin-bottom:12px;">
             <input type="password" id="regPassword" placeholder="Wymyśl silne hasło..." style="width:100%; margin-bottom:16px;">
-            <button onclick="handleRegister()" style="width: 100%; background: white; color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zarejestruj się</button>
-            <div class="auth-links" onclick="toggleAuthScreens(true)">Masz już konto? Zaloguj</div>
+            <button onclick="window.handleRegister()" style="width: 100%; background: white; color: black; font-weight:700; padding:14px; border-radius:20px; border:none; cursor:pointer;">Zarejestruj się</button>
+            <div class="auth-links" onclick="window.toggleAuthScreens(true)">Masz już konto? Zaloguj</div>
         </div>
     </div>
 
@@ -136,7 +137,7 @@
                 </div>
                 <div class="search-box">
                     <input type="text" id="searchUser" placeholder="Szukaj znajomego po nicku...">
-                    <button onclick="startChatWithSearchedUser()">Czat</button>
+                    <button onclick="window.startChatWithSearchedUser()">Czat</button>
                 </div>
             </div>
 
@@ -144,11 +145,11 @@
             <div class="section-title">Relacje i Skróty</div>
             <div class="stories-container" id="storiesContainer">
                 <div class="story-wrapper">
-                    <div class="story-circle add-story" onclick="createNewStory()">+</div>
+                    <div class="story-circle add-story" onclick="window.createNewStory()">+</div>
                     <span>Dodaj</span>
                 </div>
                 <div class="story-wrapper">
-                    <div class="story-circle add-shortcut" onclick="createNewShortcut()">⚙️</div>
+                    <div class="story-circle add-shortcut" onclick="window.createNewShortcut()">⚙️</div>
                     <span>Skrót</span>
                 </div>
             </div>
@@ -167,11 +168,11 @@
 
             <!-- INPUT AREA -->
             <div class="input-area" id="inputArea" style="display: none;">
-                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="sendImage(this)">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 <button class="icon-btn" onclick="document.getElementById('imageInput').click()">📸</button>
                 <div class="input-wrapper">
                     <input type="text" id="messageInput" placeholder="Wyślij znikającą wiadomość...">
-                    <button class="send-btn" onclick="sendMessage()">Wyślij</button>
+                    <button class="send-btn" onclick="window.sendMessage()">Wyślij</button>
                 </div>
             </div>
         </div>
@@ -182,27 +183,30 @@
 
         <!-- NAVBAR DOLNY -->
         <div class="tab-bar">
-            <button class="tab-btn active" id="btn-tab-chat" onclick="switchTab('chat')">💬 <span>Czaty</span></button>
-            <button class="tab-btn" id="btn-tab-map" onclick="switchTab('map')">🗺️ <span>SnapMap</span></button>
+            <button class="tab-btn active" id="btn-tab-chat" onclick="window.switchTab('chat')">💬 <span>Czaty</span></button>
+            <button class="tab-btn" id="btn-tab-map" onclick="window.switchTab('map')">🗺️ <span>SnapMap</span></button>
         </div>
     </div>
 
     <!-- MODAL RELACJI -->
     <div class="story-modal" id="storyModal">
         <div class="story-top-info">
-            <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:20px;">👻</span> <span id="storyModalAuthor">Autor</span> <span id="storyViewsBadge" style="font-size:12px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:6px;"></span></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:20px;">👻</span> 
+                <span id="storyModalAuthor">Autor</span> 
+                <span id="storyViewsBadge" style="font-size:12px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:6px;"></span>
+            </div>
             <div id="storyDeleteContainer"></div>
         </div>
-        <div id="storyModalContent" style="width: 100%; display: flex; justify-content: center; align-items: center;" onclick="closeStoryModal()"></div>
+        <div id="storyModalContent" style="width: 100%; display: flex; justify-content: center; align-items: center;" onclick="window.closeStoryModal()"></div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- KONFIGURACJA FIREBASE MODUŁOWA (2026 PRO) -->
+    <!-- LOGIKA SILNIKA FIREBASE (TRYB GHOST) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, orderBy, getDocs, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Twoja konfiguracja z Firebase, którą skopiowałeś:
+        // Twoja konfiguracja Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDQ3TtLG4Vem4LiElySooJnnJPQy-DRBSw",
             authDomain: "apka-32bf2.firebaseapp.com",
@@ -215,7 +219,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Zmienne globalne stanu aplikacji
+        // Stan aplikacji
         let currentUser = null;
         let activeChatUser = null;
         let activeShortcut = null;
@@ -223,27 +227,13 @@
         let mapMarker = null;
         let activeListeners = [];
 
-        // Wyciągamy funkcje do okna globalnego, by HTML miał do nich dostęp
-        window.handleLogin = handleLogin;
-        window.handleRegister = handleRegister;
-        window.toggleAuthScreens = toggleAuthScreens;
-        window.startChatWithSearchedUser = startChatWithSearchedUser;
-        window.sendMessage = sendMessage;
-        window.sendImage = sendImage;
-        window.createNewStory = createNewStory;
-        window.createNewShortcut = createNewShortcut;
-        window.selectChat = selectChat;
-        window.switchTab = switchTab;
-        window.closeStoryModal = closeStoryModal;
-        window.deleteStory = deleteStory;
-
-        // --- OBSŁUGA EKRANÓW I LOGOWANIA ---
-        function toggleAuthScreens(showLogin) {
+        // --- INTERFEJS REJESTRACJI FUNKCJI GLOBALNYCH W OKNIE PRZEGLĄDARKI (NAPRAWA BŁĘDÓW) ---
+        window.toggleAuthScreens = function(showLogin) {
             document.getElementById('loginScreen').style.display = showLogin ? 'flex' : 'none';
             document.getElementById('registerScreen').style.display = showLogin ? 'none' : 'flex';
-        }
+        };
 
-        async function handleRegister() {
+        window.handleRegister = async function() {
             const user = document.getElementById('regUsername').value.trim().toLowerCase();
             const pass = document.getElementById('regPassword').value.trim();
             if(!user || !pass) return alert("Uzupełnij pola!");
@@ -252,8 +242,7 @@
             const userSnap = await getDoc(userRef);
 
             if(userSnap.exists()) {
-                alert("Ten użytkownik już istnieje!");
-                return;
+                return alert("Ten użytkownik już istnieje!");
             }
 
             const hashedPassword = CryptoJS.SHA256(pass).toString();
@@ -265,10 +254,10 @@
             });
 
             alert("Konto utworzone! Zaloguj się.");
-            toggleAuthScreens(true);
-        }
+            window.toggleAuthScreens(true);
+        };
 
-        async function handleLogin() {
+        window.handleLogin = async function() {
             const user = document.getElementById('loginUsername').value.trim().toLowerCase();
             const pass = document.getElementById('loginPassword').value.trim();
             if(!user || !pass) return alert("Uzupełnij pola!");
@@ -277,14 +266,12 @@
             const userSnap = await getDoc(userRef);
 
             if(!userSnap.exists()) {
-                alert("Nie ma takiego użytkownika!");
-                return;
+                return alert("Nie ma takiego użytkownika!");
             }
 
             const hashedPassword = CryptoJS.SHA256(pass).toString();
             if(userSnap.data().password !== hashedPassword) {
-                alert("Błędne hasło!");
-                return;
+                return alert("Błędne hasło!");
             }
 
             currentUser = userSnap.data();
@@ -293,16 +280,21 @@
             document.getElementById('displayMyName').innerText = currentUser.username;
 
             initApp();
-        }
+        };
 
         function initApp() {
             listenToGlobalStories();
             listenToActiveChatsList();
             initSnapMap();
-            listenToPrivateNotifications(); 
+            listenToPrivateNotifications();
+            
+            // Obsługa przesyłania plików (zdjęć)
+            document.getElementById('imageInput').addEventListener('change', function() {
+                sendImage(this);
+            });
         }
 
-        // --- CZAT W TRYBIE GHOST (BEZ ZAPISYWANIA W BAZIE) ---
+        // --- PODGLĄD CZATU (W LOCIE / GHOST MODE) ---
         function listenToMessages(chatWith) {
             activeListeners.forEach(unsub => unsub());
             activeListeners = [];
@@ -324,7 +316,7 @@
 
                         renderGhostMessage(msgData, msgId);
 
-                        // Natychmiastowe spalenie wiadomości w bazie
+                        // Usuwamy natychmiast wiadomość z Firebase – brak śladów w bazie
                         await deleteDoc(doc(db, "ghost_messages", msgId));
                     }
                 });
@@ -356,7 +348,7 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        async function sendMessage() {
+        window.sendMessage = async function() {
             const input = document.getElementById('messageInput');
             const content = input.value.trim();
             if(!content || !activeChatUser) return;
@@ -383,7 +375,7 @@
             });
 
             input.value = '';
-        }
+        };
 
         async function sendImage(fileInput) {
             const file = fileInput.files[0];
@@ -411,8 +403,8 @@
             reader.readAsDataURL(file);
         }
 
-        // --- HISTORIE (STORIES) Z LIMITAMI WYŚWIETLEŃ 1 LUB 2-RAZOWYCH ---
-        async function createNewStory() {
+        // --- RELACJE (STORIES) - LIMIT 1 LUB 2 WYŚWIETLEŃ ---
+        window.createNewStory = async function() {
             const content = prompt("Wpisz tekst Twojej relacji:");
             if(!content) return;
 
@@ -430,12 +422,12 @@
             });
 
             alert("Relacja dodana!");
-        }
+        };
 
         function listenToGlobalStories() {
             const container = document.getElementById('storiesContainer');
-            
             const q = query(collection(db, "stories"), orderBy("createdAt", "desc"));
+            
             onSnapshot(q, (snapshot) => {
                 const items = container.querySelectorAll('.story-wrapper');
                 items.forEach((item, index) => { if(index > 1) item.remove(); });
@@ -444,6 +436,7 @@
                     const story = docSnap.data();
                     const storyId = docSnap.id;
 
+                    // Ukryj, jeśli limit wyświetleń został już osiągnięty przez tego użytkownika
                     if(story.viewedBy.filter(u => u === currentUser.username).length >= story.maxViews) {
                         return; 
                     }
@@ -475,20 +468,22 @@
             badgeZone.innerText = `Limit: ${story.maxViews}x`;
             contentZone.innerHTML = `<div class="story-text-content">${story.content}</div>`;
 
+            // Opcja ręcznego usunięcia relacji dla twórcy
             if(story.author === currentUser.username) {
-                deleteContainer.innerHTML = `<button class="delete-story-btn" onclick="deleteStory('${storyId}')">Usuń relację</button>`;
+                deleteContainer.innerHTML = `<button class="delete-story-btn">Usuń relację</button>`;
+                deleteContainer.querySelector('button').addEventListener('click', () => window.deleteStory(storyId));
             } else {
                 deleteContainer.innerHTML = '';
             }
 
             modal.style.display = 'flex';
 
-            // Logika drugiego obejrzenia + ciche powiadomienie
+            // Sprawdzanie limitu wyświetleń dla obcych relacji
             if(story.author !== currentUser.username) {
                 const updatedViewedBy = [...story.viewedBy, currentUser.username];
-                const newViewsCount = story.viewsCount + 1;
-                const timesThisUserWatched = updatedViewedBy.filter(u => u === currentUser.username).length;
+                const timesThisUserWatched = updatedViewedBy.filter(u => u === currentUser.username).length + 1;
 
+                // Drugie obejrzenie -> Ciche powiadomienie-widmo dla nadawcy
                 if(story.maxViews === 2 && timesThisUserWatched === 2) {
                     await addDoc(collection(db, "ghost_notifications"), {
                         targetUser: story.author,
@@ -500,25 +495,25 @@
 
                 const storyRef = doc(db, "stories", storyId);
                 await updateDoc(storyRef, {
-                    viewsCount: newViewsCount,
+                    viewsCount: story.viewsCount + 1,
                     viewedBy: arrayUnion(currentUser.username)
                 });
             }
         }
 
-        function closeStoryModal() {
+        window.closeStoryModal = function() {
             document.getElementById('storyModal').style.display = 'none';
-        }
+        };
 
-        async function deleteStory(storyId) {
+        window.deleteStory = async function(storyId) {
             if(confirm("Czy na pewno chcesz trwale usunąć tę relację?")) {
                 await deleteDoc(doc(db, "stories", storyId));
-                closeStoryModal();
+                window.closeStoryModal();
                 alert("Relacja została skasowana.");
             }
-        }
+        };
 
-        // --- SYSTEM POWIADOMIEŃ NADAWCY ---
+        // --- NASŁUCHIWANIE POWIADOMIEŃ (GHOST NOTIFICATIONS) ---
         function listenToPrivateNotifications() {
             const q = query(
                 collection(db, "ghost_notifications"), 
@@ -532,19 +527,21 @@
                         const notifId = change.doc.id;
 
                         alert(`🔔 Powiadomienie: ${notif.message}`);
+                        
+                        // Po zrenderowaniu alertu palimy dokument w bazie danych
                         await deleteDoc(doc(db, "ghost_notifications", notifId));
                     }
                 });
             });
         }
 
-        // --- SKRÓTY I LISTA ROZMÓW ---
-        async function createNewShortcut() {
+        // --- SKRÓTY I ROZMOWY ---
+        window.createNewShortcut = async function() {
             const name = prompt("Podaj nazwę nowego skrótu grupy znajomych:");
             if(!name) return;
             activeShortcut = name;
             alert(`Ustawiono aktywny skrót: ${name}. Kliknij na znajomego, aby pisać w tym skrócie.`);
-        }
+        };
 
         function listenToActiveChatsList() {
             const container = document.getElementById('recentChats');
@@ -563,14 +560,14 @@
                         const chip = document.createElement('div');
                         chip.className = `chat-chip ${activeChatUser === target ? 'active' : ''}`;
                         chip.innerHTML = `👤 <span>${target}</span>`;
-                        chip.onclick = () => selectChat(target, chip);
+                        chip.addEventListener('click', () => selectChat(target, chip));
                         container.appendChild(chip);
                     }
                 });
             });
         }
 
-        async function startChatWithSearchedUser() {
+        window.startChatWithSearchedUser = async function() {
             const target = document.getElementById('searchUser').value.trim().toLowerCase();
             if(!target || target === currentUser.username) return alert("Niepoprawny użytkownik!");
 
@@ -578,12 +575,11 @@
             const userSnap = await getDoc(userRef);
 
             if(!userSnap.exists()) {
-                alert("Nie znaleziono takiego użytkownika.");
-                return;
+                return alert("Nie znaleziono takiego użytkownika.");
             }
 
             selectChat(target);
-        }
+        };
 
         function selectChat(username, element = null) {
             activeChatUser = username;
@@ -596,8 +592,8 @@
             listenToMessages(username);
         }
 
-        // --- NAWIGACJA TABS ---
-        function switchTab(tab) {
+        // --- NAWIGACJA ZAKŁADEK ---
+        window.switchTab = function(tab) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
@@ -608,9 +604,9 @@
                 setTimeout(() => { map.invalidateSize(); }, 200);
                 updateMyLocation();
             }
-        }
+        };
 
-        // --- SNAPMAP ---
+        // --- MAPA (SNAPMAP) ---
         function initSnapMap() {
             map = L.map('map').setView([52.237, 21.017], 13);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
